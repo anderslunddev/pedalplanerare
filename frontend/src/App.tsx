@@ -379,12 +379,17 @@ const App: React.FC = () => {
       if (!adjacent) {
         // No place to move: delete this pedal and refresh cables
         try {
-          await fetch(`/api/pedals/${pedal.id}`, {
+          const res = await fetch(`/api/pedals/${pedal.id}`, {
             method: "DELETE",
             headers: getAuthHeaders(),
           });
+          if (!res.ok) {
+            setError("Could not remove pedal. Try again.");
+            return;
+          }
         } catch {
-          // ignore
+          setError("Could not remove pedal. Try again.");
+          return;
         }
         setPedals((prev) => prev.filter((p) => p.id !== pedal.id));
         setCables((prev) =>
@@ -407,7 +412,7 @@ const App: React.FC = () => {
       );
     }
     try {
-      await fetch(`/api/pedals/${pedal.id}`, {
+      const res = await fetch(`/api/pedals/${pedal.id}`, {
         method: "PUT",
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -415,10 +420,13 @@ const App: React.FC = () => {
           y: finalY
         })
       });
-      // After successfully updating the pedal position, regenerate the sequence
+      if (!res.ok) {
+        setError("Could not save pedal position. Try again.");
+        return;
+      }
       await generateSequence();
     } catch {
-      // ignore for now; in real app you'd handle error
+      setError("Could not save pedal position. Try again.");
     }
   };
 
@@ -449,17 +457,22 @@ const App: React.FC = () => {
 
   const handleDeleteBoard = async () => {
     if (!board) return;
+    setError(null);
     try {
-      await fetch(`/api/boards/${board.id}`, {
+      const res = await fetch(`/api/boards/${board.id}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
+      if (!res.ok) {
+        setError("Could not delete board. Try again.");
+        return;
+      }
       setActiveBoardId(null);
       setBoard(null);
       setPedals([]);
       setCables([]);
     } catch {
-      // ignore errors for now
+      setError("Could not delete board. Try again.");
     }
   };
 
@@ -495,7 +508,7 @@ const App: React.FC = () => {
                     value={loginUsername}
                     onChange={(e) => setLoginUsername(e.target.value)}
                     className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                    placeholder="anders"
+                    placeholder="Username"
                   />
                 </div>
                 <div className="space-y-2">
@@ -507,7 +520,7 @@ const App: React.FC = () => {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     className="w-full rounded-md bg-slate-900 border border-slate-700 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-400"
-                    placeholder="pass"
+                    placeholder="Password"
                   />
                 </div>
                 <button
@@ -528,9 +541,6 @@ const App: React.FC = () => {
                   Create an account
                 </button>
               </div>
-              <p className="text-xs text-slate-500 text-center">
-                Test user: <span className="font-mono">anders / pass</span>
-              </p>
             </>
           ) : (
             <>
@@ -889,10 +899,16 @@ const App: React.FC = () => {
                           <button
                             onClick={async (e) => {
                               e.stopPropagation();
+                              setError(null);
                               try {
-                                await fetch(`/api/pedals/${pedal.id}`, {
-                                  method: "DELETE"
+                                const res = await fetch(`/api/pedals/${pedal.id}`, {
+                                  method: "DELETE",
+                                  headers: getAuthHeaders(),
                                 });
+                                if (!res.ok) {
+                                  setError("Could not remove pedal. Try again.");
+                                  return;
+                                }
                                 setPedals((prev) => prev.filter((p) => p.id !== pedal.id));
                                 setCables((prev) =>
                                   prev.filter(
@@ -901,8 +917,8 @@ const App: React.FC = () => {
                                       c.destinationPedalId !== pedal.id
                                   )
                                 );
-                              } catch (err) {
-                                // ignore for now
+                              } catch {
+                                setError("Could not remove pedal. Try again.");
                               }
                             }}
                             className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-600 text-[8px] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"

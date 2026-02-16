@@ -1,0 +1,13 @@
+{
+  "name": "pedalplanerare",
+  "private": true,
+  "description": "Pedalboard planner – frontend (Vite/React) and backend (Spring Boot) under frontend/ and backend/",
+  "scripts": {
+    "dev": "npm run dev --prefix frontend",
+    "build": "npm run build --prefix frontend",
+    "preview": "npm run preview --prefix frontend",
+    "backend:build": "cd backend && mvn clean package -Dskip.frontend=false",
+    "backend:run": "java -jar backend/target/pedalboard-backend-0.0.1-SNAPSHOT.jar",
+    "backend:test": "cd backend && mvn test -Dskip.frontend=true"
+  }
+}

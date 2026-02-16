@@ -157,7 +157,7 @@
                         </goals>
                         <configuration>
                             <skip>${skip.frontend}</skip>
-                            <workingDirectory>${project.basedir}/frontend</workingDirectory>
+                            <workingDirectory>${project.basedir}/../frontend</workingDirectory>
                             <executable>npm</executable>
                             <arguments>
                                 <argument>install</argument>
@@ -172,7 +172,7 @@
                         </goals>
                         <configuration>
                             <skip>${skip.frontend}</skip>
-                            <workingDirectory>${project.basedir}/frontend</workingDirectory>
+                            <workingDirectory>${project.basedir}/../frontend</workingDirectory>
                             <executable>npm</executable>
                             <arguments>
                                 <argument>run</argument>
@@ -193,7 +193,7 @@
                 <directory>src/main/resources</directory>
             </resource>
             <resource>
-                <directory>frontend/dist</directory>
+                <directory>../frontend/dist</directory>
                 <targetPath>static</targetPath>
             </resource>
         </resources>
