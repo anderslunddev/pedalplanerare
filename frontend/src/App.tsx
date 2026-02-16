@@ -207,7 +207,19 @@ const App: React.FC = () => {
 
       if (!response.ok) {
         const errorText = await response.text();
-        throw new Error(errorText || `Request failed with status ${response.status}`);
+        let message = `Request failed (${response.status})`;
+        try {
+          const err = JSON.parse(errorText);
+          if (err.message) message = err.message;
+          else if (err.fieldErrors && typeof err.fieldErrors === "object") {
+            message = Object.entries(err.fieldErrors)
+              .map(([k, v]) => `${k}: ${v}`)
+              .join(". ");
+          }
+        } catch {
+          if (errorText) message = errorText;
+        }
+        throw new Error(message);
       }
 
       const data: Board = await response.json();

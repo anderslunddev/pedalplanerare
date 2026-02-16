@@ -3,8 +3,8 @@ package io.github.anderslunddev.pedalboard.service.pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
 import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
-import io.github.anderslunddev.pedalboard.model.CableRepositoryAdapter;
 import io.github.anderslunddev.pedalboard.model.PedalRepositoryAdapter;
+import io.github.anderslunddev.pedalboard.service.cable.CableService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +14,11 @@ import java.util.Optional;
 public class PedalService {
 
 	private final PedalRepositoryAdapter pedalRepositoryAdapter;
-	private final CableRepositoryAdapter cableRepositoryAdapter;
+	private final CableService cableService;
 
-	public PedalService(PedalRepositoryAdapter pedalRepositoryAdapter, CableRepositoryAdapter cableRepositoryAdapter) {
+	public PedalService(PedalRepositoryAdapter pedalRepositoryAdapter, CableService cableService) {
 		this.pedalRepositoryAdapter = pedalRepositoryAdapter;
-		this.cableRepositoryAdapter = cableRepositoryAdapter;
+		this.cableService = cableService;
 	}
 
 	@Transactional
@@ -28,8 +28,7 @@ public class PedalService {
 
 	@Transactional
 	public boolean deletePedal(PedalId id) {
-		cableRepositoryAdapter.deleteBySourcePedalIdOrDestinationPedalId(id);
-		cableRepositoryAdapter.flush();
+		cableService.deleteCablesForPedal(id);
 		return pedalRepositoryAdapter.deleteByIdIfExists(id);
 	}
 }

@@ -12,6 +12,7 @@ import io.github.anderslunddev.pedalboard.model.PedalRepositoryAdapter;
 import io.github.anderslunddev.pedalboard.service.cable.calculation.RoutingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -72,14 +73,7 @@ public class CableService {
 			return Optional.of(List.of());
 		}
 
-		int expected = 1;
-		for (Pedal p : pedals) {
-			if (p.placement().value() != expected) {
-				throw new IllegalStateException("Cannot connect pedals: Placement #" + expected + " is missing.");
-			}
-			expected++;
-		}
-
+		// Connect pedals in placement order (each to the next). Gaps are allowed (e.g. 1 and 3 after deleting 2).
 		cableRepositoryAdapter.deleteByBoardId(boardId);
 
 		List<Cable> result = new ArrayList<>();
@@ -100,6 +94,18 @@ public class CableService {
 		Cable saved = cableRepositoryAdapter.saveCable(domainBoard.id(), source.id(), destination.id(),
 				routing.pathPoints(), routingLength);
 		return saved;
+	}
+
+	/**
+	 * Deletes all cables that reference the given pedal (source or destination).
+	 * Runs in a separate transaction so the persistence context is cleared before
+	 * the pedal is deleted, avoiding "Row was updated or deleted" when deleting
+	 * entities with {@code @ElementCollection}.
+	 */
+	@Transactional(propagation = Propagation.REQUIRES_NEW) //TODO look up why
+	public void deleteCablesForPedal(PedalId pedalId) {
+		cableRepositoryAdapter.deleteBySourcePedalIdOrDestinationPedalId(pedalId);
+		cableRepositoryAdapter.flush();
 	}
 
 	@PreAuthorize("@ownershipChecker.ownsBoard(#boardId)")

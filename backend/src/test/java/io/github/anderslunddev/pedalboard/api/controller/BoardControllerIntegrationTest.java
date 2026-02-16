@@ -566,4 +566,111 @@ class BoardControllerIntegrationTest {
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.length()").value(0));
 	}
+
+	@Test
+	void deletePedalB_useCase_pedalAConnectsToPedalC() throws Exception {
+		String auth = authHeader();
+		UUID userId = defaultUserId();
+
+		// 1) Create a board
+		String boardName = "Three Pedals " + UUID.randomUUID();
+		String boardPayload = String.format("""
+				{
+				  "name": "%s",
+				  "width": 80.0,
+				  "height": 40.0,
+				  "userId": "%s"
+				}
+				""", boardName, userId);
+
+		MvcResult createBoardResult = mockMvc
+				.perform(post("/api/boards").header("Authorization", auth).contentType(MediaType.APPLICATION_JSON)
+						.content(boardPayload))
+				.andExpect(status().isCreated()).andReturn();
+
+		String boardJson = createBoardResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		String boardId = objectMapper.readTree(boardJson).get("id").asText();
+
+		// 2) Add pedal A (placement 1)
+		MvcResult pedalAResult = mockMvc
+				.perform(post("/api/boards/" + boardId + "/pedals").header("Authorization", auth)
+						.contentType(MediaType.APPLICATION_JSON).content("""
+								{
+								  "name": "Pedal A",
+								  "width": 10.0,
+								  "height": 10.0,
+								  "color": "#ff0000",
+								  "x": 5.0,
+								  "y": 5.0,
+								  "placement": 1
+								}
+								"""))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.placement").value(1)).andReturn();
+		String pedalAId = objectMapper.readTree(pedalAResult.getResponse().getContentAsString(StandardCharsets.UTF_8))
+				.get("id").asText();
+
+		// 3) Add pedal B (placement 2)
+		MvcResult pedalBResult = mockMvc
+				.perform(post("/api/boards/" + boardId + "/pedals").header("Authorization", auth)
+						.contentType(MediaType.APPLICATION_JSON).content("""
+								{
+								  "name": "Pedal B",
+								  "width": 10.0,
+								  "height": 10.0,
+								  "color": "#00ff00",
+								  "x": 30.0,
+								  "y": 10.0,
+								  "placement": 2
+								}
+								"""))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.placement").value(2)).andReturn();
+		String pedalBId = objectMapper.readTree(pedalBResult.getResponse().getContentAsString(StandardCharsets.UTF_8))
+				.get("id").asText();
+
+		// 4) Add pedal C (placement 3)
+		MvcResult pedalCResult = mockMvc
+				.perform(post("/api/boards/" + boardId + "/pedals").header("Authorization", auth)
+						.contentType(MediaType.APPLICATION_JSON).content("""
+								{
+								  "name": "Pedal C",
+								  "width": 10.0,
+								  "height": 10.0,
+								  "color": "#0000ff",
+								  "x": 55.0,
+								  "y": 15.0,
+								  "placement": 3
+								}
+								"""))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.placement").value(3)).andReturn();
+		String pedalCId = objectMapper.readTree(pedalCResult.getResponse().getContentAsString(StandardCharsets.UTF_8))
+				.get("id").asText();
+
+		// 5) Move each pedal to a new position
+		mockMvc.perform(put("/api/pedals/" + pedalAId).header("Authorization", auth)
+				.contentType(MediaType.APPLICATION_JSON).content("{\"x\": 8.0, \"y\": 8.0}")).andExpect(status().isOk());
+		mockMvc.perform(put("/api/pedals/" + pedalBId).header("Authorization", auth)
+				.contentType(MediaType.APPLICATION_JSON).content("{\"x\": 35.0, \"y\": 12.0}")).andExpect(status().isOk());
+		mockMvc.perform(put("/api/pedals/" + pedalCId).header("Authorization", auth)
+				.contentType(MediaType.APPLICATION_JSON).content("{\"x\": 60.0, \"y\": 18.0}")).andExpect(status().isOk());
+
+		// 6) Delete pedal B
+		mockMvc.perform(delete("/api/pedals/" + pedalBId).header("Authorization", auth))
+				.andExpect(status().isNoContent());
+
+		// 7) Generate sequence: A (placement 1) should connect to C (placement 3) as the next pedal
+		mockMvc.perform(post("/api/boards/" + boardId + "/generate-sequence").header("Authorization", auth))
+				.andExpect(status().isOk());
+
+		// 8) Verify two pedals left (A and C)
+		mockMvc.perform(get("/api/boards/" + boardId).header("Authorization", auth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.pedals.length()").value(2));
+
+		// 9) Verify one cable: source = A, destination = C
+		mockMvc.perform(get("/api/boards/" + boardId + "/cables").header("Authorization", auth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(1))
+				.andExpect(jsonPath("$[0].sourcePedalId").value(pedalAId))
+				.andExpect(jsonPath("$[0].destinationPedalId").value(pedalCId));
+	}
 }

@@ -7,8 +7,8 @@ import io.github.anderslunddev.pedalboard.domain.pedal.Placement;
 import io.github.anderslunddev.pedalboard.domain.value.Color;
 import io.github.anderslunddev.pedalboard.domain.value.SurfaceArea;
 import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
-import io.github.anderslunddev.pedalboard.model.CableRepositoryAdapter;
 import io.github.anderslunddev.pedalboard.model.PedalRepositoryAdapter;
+import io.github.anderslunddev.pedalboard.service.cable.CableService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -30,7 +30,7 @@ class PedalServiceTest {
 	private PedalRepositoryAdapter pedalRepositoryAdapter;
 
 	@Mock
-	private CableRepositoryAdapter cableRepositoryAdapter;
+	private CableService cableService;
 
 	@InjectMocks
 	private PedalService pedalService;
@@ -51,7 +51,7 @@ class PedalServiceTest {
 		assertTrue(result.isPresent());
 		assertEquals(pedal, result.get());
 		verify(pedalRepositoryAdapter).updatePosition(id, coordinate);
-		verifyNoInteractions(cableRepositoryAdapter);
+		verifyNoInteractions(cableService);
 	}
 
 	@Test
@@ -65,7 +65,7 @@ class PedalServiceTest {
 
 		assertTrue(result.isEmpty());
 		verify(pedalRepositoryAdapter).updatePosition(id, coordinate);
-		verifyNoInteractions(cableRepositoryAdapter);
+		verifyNoInteractions(cableService);
 	}
 
 	@Test
@@ -77,7 +77,7 @@ class PedalServiceTest {
 		boolean deleted = pedalService.deletePedal(id);
 
 		assertTrue(deleted);
-		verify(cableRepositoryAdapter).deleteBySourcePedalIdOrDestinationPedalId(id);
+		verify(cableService).deleteCablesForPedal(id);
 		verify(pedalRepositoryAdapter).deleteByIdIfExists(id);
 	}
 
@@ -90,7 +90,7 @@ class PedalServiceTest {
 		boolean deleted = pedalService.deletePedal(id);
 
 		assertFalse(deleted);
-		verify(cableRepositoryAdapter).deleteBySourcePedalIdOrDestinationPedalId(id);
+		verify(cableService).deleteCablesForPedal(id);
 		verify(pedalRepositoryAdapter).deleteByIdIfExists(id);
 	}
 }
