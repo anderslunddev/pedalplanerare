@@ -49,3 +49,8 @@ Thumbs.db
 # Application logs
 logs/
 *.log
+
+# H2 database files (local development)
+backend/data/
+*.mv.db
+*.trace.db

@@ -42,7 +42,7 @@ cd backend
 mvn spring-boot:run
 ```
 
-Backend runs at `http://localhost:8080` with an in-memory H2 database (data resets on restart).
+Backend runs at `http://localhost:8080` with a file-based H2 database (data persists in `backend/data/pedalboard.mv.db`).
 
 **Terminal 2 – frontend:**
 

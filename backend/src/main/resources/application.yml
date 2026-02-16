@@ -1,8 +1,8 @@
 spring:
   datasource:
-    # Local default: H2 in-memory. In production on Render, override via
-    # SPRING_DATASOURCE_URL / SPRING_DATASOURCE_USERNAME / SPRING_DATASOURCE_PASSWORD.
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:pedalboard;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    # Local default: H2 file-based (persists in backend/data/pedalboard.mv.db).
+    # In production on Render, override via SPRING_DATASOURCE_URL / SPRING_DATASOURCE_USERNAME / SPRING_DATASOURCE_PASSWORD.
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:file:./data/pedalboard;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
     driver-class-name: ${SPRING_DATASOURCE_DRIVER_CLASS_NAME:org.h2.Driver}
     username: ${SPRING_DATASOURCE_USERNAME:sa}
     password: ${SPRING_DATASOURCE_PASSWORD:}
