@@ -70,6 +70,9 @@ public class BoardService {
 		}
 
 		Board board = boardOpt.get();
+		if (board.wouldOverlapWithExisting(pedalToCreate)) {
+			throw new IllegalArgumentException("Pedal would overlap an existing pedal. Choose a different position.");
+		}
 		// Domain logic: decide final placement
 		Placement placement = board.resolvePlacementFor(pedalToCreate);
 

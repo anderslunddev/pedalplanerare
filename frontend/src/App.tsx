@@ -42,6 +42,55 @@ type User = {
 
 const PIXELS_PER_UNIT = 5;
 
+function isOverlapping(
+  a: { x: number; y: number; width: number; height: number },
+  b: { x: number; y: number; width: number; height: number }
+): boolean {
+  return !(
+    a.x + a.width <= b.x ||
+    b.x + b.width <= a.x ||
+    a.y + a.height <= b.y ||
+    b.y + b.height <= a.y
+  );
+}
+
+/** Find a default (x, y) for a new pedal of size (w, h) that does not overlap existing pedals. */
+function findDefaultPosition(
+  boardWidth: number,
+  boardHeight: number,
+  existingPedals: { x: number; y: number; width: number; height: number }[],
+  w: number,
+  h: number
+): { x: number; y: number } {
+  const margin = 1;
+  const centerX = (boardWidth - w) / 2;
+  const centerY = (boardHeight - h) / 2;
+  const candidate = { x: centerX, y: centerY, width: w, height: h };
+
+  const withinBoard = (x: number, y: number) =>
+    x >= 0 && y >= 0 && x + w <= boardWidth && y + h <= boardHeight;
+
+  const overlapsAny = (x: number, y: number) =>
+    existingPedals.some((p) =>
+      isOverlapping({ ...candidate, x, y }, p)
+    );
+
+  if (!overlapsAny(centerX, centerY)) return { x: centerX, y: centerY };
+
+  const tries = [
+    { x: centerX + w + margin, y: centerY },
+    { x: centerX - w - margin, y: centerY },
+    { x: centerX, y: centerY + h + margin },
+    { x: centerX, y: centerY - h - margin },
+    { x: centerX + w + margin, y: centerY + h + margin },
+    { x: centerX - w - margin, y: centerY - h - margin },
+  ];
+  for (const t of tries) {
+    if (withinBoard(t.x, t.y) && !overlapsAny(t.x, t.y)) return t;
+  }
+  return { x: centerX, y: centerY };
+}
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
@@ -236,8 +285,7 @@ const App: React.FC = () => {
       return;
     }
 
-    const x = (board.width - w) / 2;
-    const y = (board.height - h) / 2;
+    const { x, y } = findDefaultPosition(board.width, board.height, pedals, w, h);
 
     try {
       const response = await fetch(`/api/boards/${board.id}/pedals`, {
@@ -317,15 +365,6 @@ const App: React.FC = () => {
 
     // Prevent overlapping pedals: try to move next to any collided pedal; delete if no space.
     const otherPedals = pedals.filter((p) => p.id !== pedal.id);
-
-    const isOverlapping = (a: Pedal, b: Pedal) => {
-      return !(
-        a.x + a.width <= b.x ||
-        b.x + b.width <= a.x ||
-        a.y + a.height <= b.y ||
-        b.y + b.height <= a.y
-      );
-    };
 
     const findNonOverlappingAdjacentPosition = (
       moving: Pedal,
