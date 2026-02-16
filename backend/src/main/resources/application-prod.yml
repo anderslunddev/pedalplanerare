@@ -1,0 +1,11 @@
+# Production profile: set CORS_ALLOWED_ORIGINS and JWT_SECRET via environment.
+# H2 console is disabled; use a real database (e.g. Postgres via SPRING_DATASOURCE_*).
+spring:
+  h2:
+    console:
+      enabled: false
+
+app:
+  cors:
+    # In production, set CORS_ALLOWED_ORIGINS to your frontend origin(s), e.g. https://your-app.onrender.com
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:}

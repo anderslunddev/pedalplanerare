@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<profiles version="21">
+    <profile name="Pedalboard Eclipse Formatter" version="21">
+        <!-- Base on Eclipse defaults, but force method chains to wrap more nicely -->
+        <setting id="org.eclipse.jdt.core.formatter.lineSplit" value="100"/>
+
+        <!-- Method invocation chaining: wrap and put one selector per line when wrapping -->
+        <setting id="org.eclipse.jdt.core.formatter.alignment_for_selector_in_method_invocation"
+                 value="52"/>
+
+        <!-- Keep arguments & parameters reasonably wrapped as well -->
+        <setting id="org.eclipse.jdt.core.formatter.alignment_for_parameters_in_method_declaration"
+                 value="16"/>
+        <setting id="org.eclipse.jdt.core.formatter.alignment_for_arguments_in_method_invocation"
+                 value="16"/>
+
+        <!-- Basic indentation: 4 spaces -->
+        <setting id="org.eclipse.jdt.core.formatter.tabulation.char" value="space"/>
+        <setting id="org.eclipse.jdt.core.formatter.tabulation.size" value="4"/>
+        <setting id="org.eclipse.jdt.core.formatter.indentation.size" value="4"/>
+    </profile>
+</profiles>
+

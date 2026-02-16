@@ -1,0 +1,31 @@
+services:
+  # PostgreSQL Database
+  - type: pgsql
+    name: pedalboard-db
+    plan: free
+    databaseName: pedalboard
+    user: pedalboard_user
+
+  # Spring Boot Web Service
+  - type: web
+    name: pedalboard-backend
+    env: java
+    plan: free
+    region: oregon
+    buildCommand: cd backend && mvn clean package -DskipTests
+    startCommand: cd backend && java -jar target/pedalboard-backend-0.0.1-SNAPSHOT.jar
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: pedalboard-db
+          property: connectionString
+      - key: H2_CONSOLE_ENABLED
+        value: false
+      - key: SHOW_SQL
+        value: false
+      - key: HIBERNATE_DIALECT
+        value: org.hibernate.dialect.PostgreSQLDialect
