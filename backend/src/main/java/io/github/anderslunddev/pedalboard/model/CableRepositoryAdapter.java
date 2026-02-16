@@ -38,15 +38,13 @@ public class CableRepositoryAdapter {
 	}
 
 	public void deleteByBoardId(BoardId boardId) {
-		UUID id = boardId.value();
-		cableRepository.deletePathPointsByBoardId(id);
-		cableRepository.deleteCablesByBoardId(id);
+		List<CableModel> cables = cableRepository.findByBoardId(boardId.value());
+		cableRepository.deleteAll(cables);
 	}
 
 	public void deleteBySourcePedalIdOrDestinationPedalId(PedalId pedalId) {
-		UUID id = pedalId.value();
-		cableRepository.deletePathPointsByPedalId(id);
-		cableRepository.deleteCablesByPedalId(id);
+		List<CableModel> cables = cableRepository.findBySourcePedalIdOrDestinationPedalId(pedalId.value());
+		cableRepository.deleteAll(cables);
 	}
 
 	public void flush() {
