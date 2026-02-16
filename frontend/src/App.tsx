@@ -813,23 +813,6 @@ const App: React.FC = () => {
                     Connect Pedals
                   </button>
                   <button
-                    onClick={async () => {
-                      if (!board) return;
-                      try {
-                        await fetch(`/api/boards/${board.id}/cables`, {
-                          method: "DELETE",
-                          headers: getAuthHeaders(),
-                        });
-                        setCables([]);
-                      } catch (e) {
-                        // best-effort, don't crash UI
-                      }
-                    }}
-                    className="inline-flex items-center justify-center rounded bg-slate-600 px-3 py-1.5 text-sm font-medium hover:bg-slate-500"
-                  >
-                    Delete All Cables
-                  </button>
-                  <button
                     onClick={handleDeleteBoard}
                     className="inline-flex items-center justify-center rounded bg-red-600 px-3 py-1.5 text-sm font-medium hover:bg-red-500"
                   >

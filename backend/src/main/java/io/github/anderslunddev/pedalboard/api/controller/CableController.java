@@ -44,12 +44,6 @@ public class CableController {
 				.ok(cableService.listCables(new BoardId(boardId)).stream().map(CableResponse::from).toList());
 	}
 
-	@DeleteMapping("/boards/{boardId}/cables")
-	public ResponseEntity<Void> deleteCablesForBoard(@PathVariable UUID boardId) {
-		cableService.deleteCablesForBoard(new BoardId(boardId));
-		return ResponseEntity.noContent().build();
-	}
-
 	public record CableRequest(@NotNull(message = "Source pedal ID must not be null") UUID sourcePedalId,
 			@NotNull(message = "Destination pedal ID must not be null") UUID destinationPedalId) {
 	}

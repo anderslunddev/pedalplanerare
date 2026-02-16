@@ -106,14 +106,4 @@ public class CableService {
 		}
 		return cableRepositoryAdapter.findByBoardId(boardId);
 	}
-
-	@Transactional
-	@PreAuthorize("@ownershipChecker.ownsBoard(#boardId)")
-	public void deleteCablesForBoard(BoardId boardId) {
-		Optional<Board> optBoard = boardRepositoryAdapter.findById(boardId);
-		if (optBoard.isEmpty()) {
-			return;
-		}
-		cableRepositoryAdapter.deleteByBoardId(boardId);
-	}
 }
