@@ -2,10 +2,9 @@ FROM maven:3.9.6-eclipse-temurin-17 AS build
 
 WORKDIR /app
 
-# Copy backend and frontend sources
-# Important: frontend must be under backend/frontend because pom.xml expects ${project.basedir}/frontend
+# Copy backend and frontend as siblings (pom.xml uses ${project.basedir}/../frontend)
 COPY backend ./backend
-COPY frontend ./backend/frontend
+COPY frontend ./frontend
 
 # Install a modern Node.js (needed for Vite / ESM syntax)
 RUN apt-get update \
