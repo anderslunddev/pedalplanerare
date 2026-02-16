@@ -1,6 +1,7 @@
 package io.github.anderslunddev.pedalboard.config;
 
 import com.github.benmanes.caffeine.jcache.configuration.CaffeineConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,6 +16,7 @@ import java.util.concurrent.TimeUnit;
  * The starter uses this to store rate-limit buckets per client key.
  */
 @Configuration
+@ConditionalOnProperty(name = "bucket4j.enabled", havingValue = "true")
 public class Bucket4jCacheConfig {
 
 	public static final String AUTH_RATE_LIMIT_CACHE = "auth-rate-limit";

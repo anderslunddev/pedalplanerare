@@ -1,0 +1,4 @@
+# Use in-memory H2 for tests to avoid file lock with local dev DB
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE

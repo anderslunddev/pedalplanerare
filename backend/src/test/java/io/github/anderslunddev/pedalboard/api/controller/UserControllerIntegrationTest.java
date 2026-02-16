@@ -13,6 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@org.springframework.test.context.TestPropertySource(properties = { //TODO code smell
+		"spring.datasource.url=jdbc:h2:mem:testdb_user;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
+		"app.jwt.secret=test-jwt-secret-at-least-32-characters-long",
+		"app.jwt.expiration-seconds=3600",
+		"bucket4j.enabled=false"
+})
 class UserControllerIntegrationTest {
 
 	@Autowired

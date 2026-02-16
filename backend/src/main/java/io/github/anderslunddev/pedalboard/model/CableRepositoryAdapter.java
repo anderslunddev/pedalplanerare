@@ -38,16 +38,23 @@ public class CableRepositoryAdapter {
 	}
 
 	public void deleteByBoardId(BoardId boardId) {
-		cableRepository.deleteByBoardId(boardId.value());
+		UUID id = boardId.value();
+		cableRepository.deletePathPointsByBoardId(id);
+		cableRepository.deleteCablesByBoardId(id);
 	}
 
 	public void deleteBySourcePedalIdOrDestinationPedalId(PedalId pedalId) {
 		UUID id = pedalId.value();
-		cableRepository.deleteBySourcePedalIdOrDestinationPedalId(id, id);
+		cableRepository.deletePathPointsByPedalId(id);
+		cableRepository.deleteCablesByPedalId(id);
+	}
+
+	public void flush() {
+		cableRepository.flush();
 	}
 
 	private static Cable toDomain(CableModel entity) {
-		if (entity == null)
+		if (entity == null) //TODO implicit logic in null return. bad.
 			return null;
 		List<io.github.anderslunddev.pedalboard.domain.cable.PathPoint> points = entity.getPathPoints().stream()
 				.map(p -> new io.github.anderslunddev.pedalboard.domain.cable.PathPoint(p.getX(), p.getY()))

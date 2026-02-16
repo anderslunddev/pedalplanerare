@@ -932,13 +932,42 @@ const App: React.FC = () => {
                                   return;
                                 }
                                 setPedals((prev) => prev.filter((p) => p.id !== pedal.id));
-                                setCables((prev) =>
-                                  prev.filter(
-                                    (c) =>
-                                      c.sourcePedalId !== pedal.id &&
-                                      c.destinationPedalId !== pedal.id
-                                  )
-                                );
+                                // Refetch cables so UI matches backend (cables referencing deleted pedal are removed server-side)
+                                if (board?.id) {
+                                  try {
+                                    const cablesRes = await fetch(`/api/boards/${board.id}/cables`, {
+                                      headers: getAuthHeaders(),
+                                    });
+                                    if (cablesRes.ok) {
+                                      const cablesData: Cable[] = await cablesRes.json();
+                                      setCables(cablesData);
+                                    } else {
+                                      setCables((prev) =>
+                                        prev.filter(
+                                          (c) =>
+                                            c.sourcePedalId !== pedal.id &&
+                                            c.destinationPedalId !== pedal.id
+                                        )
+                                      );
+                                    }
+                                  } catch {
+                                    setCables((prev) =>
+                                      prev.filter(
+                                        (c) =>
+                                          c.sourcePedalId !== pedal.id &&
+                                          c.destinationPedalId !== pedal.id
+                                      )
+                                    );
+                                  }
+                                } else {
+                                  setCables((prev) =>
+                                    prev.filter(
+                                      (c) =>
+                                        c.sourcePedalId !== pedal.id &&
+                                        c.destinationPedalId !== pedal.id
+                                    )
+                                  );
+                                }
                               } catch {
                                 setError("Could not remove pedal. Try again.");
                               }

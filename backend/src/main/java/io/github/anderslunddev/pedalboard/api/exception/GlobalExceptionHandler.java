@@ -97,18 +97,11 @@ public class GlobalExceptionHandler {
 	 */
 	@ExceptionHandler(RuntimeException.class)
 	public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
-		// Check if this is a business logic error (IllegalStateException already
-		// handled above)
-		// or if it's something we should treat as a client error
 		String message = ex.getMessage() != null ? ex.getMessage() : "Request processing failed";
 
-		// Most RuntimeException in this codebase are business logic errors (e.g., from
-		// CableService.generateSequence)
-		// Treat as 400 unless it's clearly a server error
 		Map<String, Object> body = Map.of("status", HttpStatus.BAD_REQUEST.value(), "error",
 				HttpStatus.BAD_REQUEST.getReasonPhrase(), "message", message);
 
-		log.debug("RuntimeException handled as client error", ex);
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
 	}
 

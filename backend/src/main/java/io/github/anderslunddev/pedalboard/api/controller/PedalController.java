@@ -31,10 +31,7 @@ public class PedalController {
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deletePedal(@PathVariable UUID id) {
-		boolean deleted = pedalService.deletePedal(new PedalId(id));
-		if (!deleted) {
-			return ResponseEntity.notFound().build();
-		}
+		pedalService.deletePedal(new PedalId(id));
 		return ResponseEntity.noContent().build();
 	}
 

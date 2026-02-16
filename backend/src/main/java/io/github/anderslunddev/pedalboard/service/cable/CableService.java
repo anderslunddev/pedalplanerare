@@ -67,6 +67,10 @@ public class CableService {
 			cableRepositoryAdapter.deleteByBoardId(boardId);
 			return Optional.of(List.of());
 		}
+		if (pedals.size() == 1) {
+			cableRepositoryAdapter.deleteByBoardId(boardId);
+			return Optional.of(List.of());
+		}
 
 		int expected = 1;
 		for (Pedal p : pedals) {

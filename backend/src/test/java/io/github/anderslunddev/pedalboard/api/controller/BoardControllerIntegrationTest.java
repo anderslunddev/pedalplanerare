@@ -25,6 +25,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@org.springframework.test.context.TestPropertySource(properties = { //TODO code smell
+		"spring.datasource.url=jdbc:h2:mem:testdb_board;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE",
+		"app.jwt.secret=test-jwt-secret-at-least-32-characters-long",
+		"app.jwt.expiration-seconds=3600",
+		"bucket4j.enabled=false"
+})
 class BoardControllerIntegrationTest {
 
 	@Autowired
@@ -463,5 +469,101 @@ class BoardControllerIntegrationTest {
 
 		// 11) Subsequent GET should be 404
 		mockMvc.perform(get("/api/boards/" + boardId).header("Authorization", auth)).andExpect(status().isNotFound());
+	}
+
+	@Test
+	void deletePedal_useCase_onePedalLeftAndNoCables() throws Exception {
+		String auth = authHeader();
+		UUID userId = defaultUserId();
+
+		// 1) Create a board
+		String boardName = "Delete Pedal Test " + UUID.randomUUID();
+		String boardPayload = String.format("""
+				{
+				  "name": "%s",
+				  "width": 60.0,
+				  "height": 30.0,
+				  "userId": "%s"
+				}
+				""", boardName, userId);
+
+		MvcResult createBoardResult = mockMvc
+				.perform(post("/api/boards").header("Authorization", auth).contentType(MediaType.APPLICATION_JSON)
+						.content(boardPayload))
+				.andExpect(status().isCreated()).andReturn();
+
+		String boardJson = createBoardResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		String boardId = objectMapper.readTree(boardJson).get("id").asText();
+
+		// 2) Create pedal A (placement 1)
+		String pedalAPayload = """
+				{
+				  "name": "Pedal A",
+				  "width": 10.0,
+				  "height": 10.0,
+				  "color": "#ff0000",
+				  "x": 5.0,
+				  "y": 5.0,
+				  "placement": 1
+				}
+				""";
+
+		MvcResult pedalAResult = mockMvc
+				.perform(post("/api/boards/" + boardId + "/pedals").header("Authorization", auth)
+						.contentType(MediaType.APPLICATION_JSON).content(pedalAPayload))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.placement").value(1)).andReturn();
+
+		String pedalAId = objectMapper.readTree(pedalAResult.getResponse().getContentAsString(StandardCharsets.UTF_8))
+				.get("id").asText();
+
+		// 3) Create pedal B (placement 2)
+		String pedalBPayload = """
+				{
+				  "name": "Pedal B",
+				  "width": 10.0,
+				  "height": 10.0,
+				  "color": "#00ff00",
+				  "x": 25.0,
+				  "y": 10.0,
+				  "placement": 2
+				}
+				""";
+
+		mockMvc.perform(post("/api/boards/" + boardId + "/pedals").header("Authorization", auth)
+				.contentType(MediaType.APPLICATION_JSON).content(pedalBPayload))
+				.andExpect(status().isCreated()).andExpect(jsonPath("$.placement").value(2));
+
+		// 4) Move one pedal to a new position
+		String movePayload = """
+				{
+				  "x": 15.0,
+				  "y": 12.0
+				}
+				""";
+
+		mockMvc.perform(put("/api/pedals/" + pedalAId).header("Authorization", auth)
+				.contentType(MediaType.APPLICATION_JSON).content(movePayload)).andExpect(status().isOk());
+
+		// 5) Connect pedals (generate sequence) so a cable exists
+		mockMvc.perform(post("/api/boards/" + boardId + "/generate-sequence").header("Authorization", auth))
+				.andExpect(status().isOk());
+
+		mockMvc.perform(get("/api/boards/" + boardId + "/cables").header("Authorization", auth))
+				.andExpect(status().isOk()).andExpect(jsonPath("$.length()", greaterThan(0)));
+
+		// 6) Delete pedal A (pedal 1)
+		mockMvc.perform(delete("/api/pedals/" + pedalAId).header("Authorization", auth))
+				.andExpect(status().isNoContent());
+
+		// 7) Verify one pedal is left
+		mockMvc.perform(get("/api/boards/" + boardId).header("Authorization", auth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.pedals.length()").value(1))
+				.andExpect(jsonPath("$.pedals[0].name").value("Pedal B"));
+
+		// 8) Verify no cables are left
+		mockMvc.perform(get("/api/boards/" + boardId + "/cables").header("Authorization", auth))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.length()").value(0));
 	}
 }

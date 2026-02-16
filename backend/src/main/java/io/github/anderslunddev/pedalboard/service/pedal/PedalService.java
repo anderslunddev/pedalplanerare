@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class PedalService {
@@ -30,6 +29,7 @@ public class PedalService {
 	@Transactional
 	public boolean deletePedal(PedalId id) {
 		cableRepositoryAdapter.deleteBySourcePedalIdOrDestinationPedalId(id);
+		cableRepositoryAdapter.flush();
 		return pedalRepositoryAdapter.deleteByIdIfExists(id);
 	}
 }
