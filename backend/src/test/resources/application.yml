@@ -1,4 +1,12 @@
-# Use in-memory H2 for tests to avoid file lock with local dev DB
+# Test profile: in-memory H2, JWT and bucket4j settings so integration tests run without file DB or rate-limit cache
 spring:
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+
+app:
+  jwt:
+    secret: test-jwt-secret-at-least-32-characters-long
+    expiration-seconds: 3600
+
+bucket4j:
+  enabled: false
