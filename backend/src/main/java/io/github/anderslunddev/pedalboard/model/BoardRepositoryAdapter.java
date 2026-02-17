@@ -24,32 +24,34 @@ public class BoardRepositoryAdapter {
 	private final BoardRepository boardRepository;
 	private final PedalRepository pedalRepository;
 	private final UserRepository userRepository;
+	private final BoardModelConverter converter;
 
 	public BoardRepositoryAdapter(BoardRepository boardRepository, PedalRepository pedalRepository,
-			UserRepository userRepository) {
+                                  UserRepository userRepository, BoardModelConverter converter) {
 		this.boardRepository = boardRepository;
 		this.pedalRepository = pedalRepository;
 		this.userRepository = userRepository;
-	}
+        this.converter = converter;
+    }
 
 	public Board createBoard(BoardName name, SurfaceArea surfaceArea, UserId userId) {
 		UserModel user = userRepository.findById(userId.value())
 				.orElseThrow(() -> new IllegalArgumentException("User not found for id " + userId));
 		BoardModel saved = boardRepository
 				.save(new BoardModel(name.value(), surfaceArea.width(), surfaceArea.height(), user));
-		return toDomain(saved);
+		return converter.toDomain(saved);
 	}
 
 	public Optional<Board> findByName(BoardName name) {
-		return boardRepository.findByName(name.value()).map(BoardRepositoryAdapter::toDomain);
+		return boardRepository.findByName(name.value()).map(converter::toDomain);
 	}
 
 	public List<Board> findByUserId(UserId userId) {
-		return boardRepository.findByUserId(userId.value()).stream().map(BoardRepositoryAdapter::toDomain).toList();
+		return boardRepository.findByUserId(userId.value()).stream().map(converter::toDomain).toList();
 	}
 
 	public Optional<Board> findById(BoardId id) {
-		return boardRepository.findById(id.value()).map(BoardRepositoryAdapter::toDomain);
+		return boardRepository.findById(id.value()).map(converter::toDomain);
 	}
 
 	public void deleteBoard(BoardId id) {
@@ -80,33 +82,10 @@ public class BoardRepositoryAdapter {
 		pedal.setPlacement(placement.value());
 
 		PedalModel saved = pedalRepository.save(pedal);
-		return Optional.of(toDomain(saved));
+		return Optional.of(converter.toDomain(saved));
 	}
 
-	private static Board toDomain(BoardModel entity) {
-		if (entity == null)
-			return null;
-		List<Pedal> domainPedals = entity.getPedals().stream().map(BoardRepositoryAdapter::toDomain).toList();
-		BoardName boardName = new BoardName(entity.getName());
-		if (entity.getUser() == null || entity.getUser().getId() == null) {
-			throw new IllegalStateException("Board " + entity.getId() + " has no associated user");
-		}
-		UserId userId = new UserId(entity.getUser().getId());
-		return new Board(new BoardId(entity.getId()), userId, boardName,
-				new SurfaceArea(entity.getWidth(), entity.getHeight()), domainPedals);
-	}
 
-	private static Pedal toDomain(PedalModel entity) {
-		if (entity == null)
-			return null;
-		Color color = new Color(entity.getColor());
-		if (entity.getPlacement() == null || entity.getPlacement() <= 0) {
-			throw new IllegalStateException(
-					"Pedal " + entity.getId() + " has invalid placement: " + entity.getPlacement());
-		}
-		Placement placement = new Placement(entity.getPlacement());
-		return new Pedal(new PedalId(entity.getId()), entity.getBoard() != null ? entity.getBoard().getId() : null,
-				new PedalName(entity.getName()), new SurfaceArea(entity.getWidth(), entity.getHeight()), color,
-				new Coordinate(entity.getX(), entity.getY()), placement);
-	}
+
+
 }
