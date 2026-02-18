@@ -10,9 +10,10 @@ type SidebarProps = {
   onBoardSelect: (boardId: string) => void;
   userId: string | null;
   authToken: string | null;
+  refreshKey: number;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ activeBoardId, onBoardSelect, userId, authToken }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeBoardId, onBoardSelect, userId, authToken, refreshKey }) => {
   const [boards, setBoards] = useState<BoardSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,18 +41,15 @@ const Sidebar: React.FC<SidebarProps> = ({ activeBoardId, onBoardSelect, userId,
         }
         const data: BoardSummary[] = await response.json();
         setBoards(data);
-      } catch (e: any) {
-        setError(e.message || "Failed to load boards");
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Failed to load boards");
       } finally {
         setLoading(false);
       }
     };
 
     fetchBoards();
-    // Refresh boards every 5 seconds to keep sidebar updated
-    const interval = setInterval(fetchBoards, 5000);
-    return () => clearInterval(interval);
-  }, [userId, authToken]);
+  }, [userId, authToken, refreshKey]);
 
   return (
     <div className="w-1/5 h-screen bg-slate-800 border-r border-slate-700 flex flex-col">
