@@ -4,19 +4,14 @@ import io.github.anderslunddev.pedalboard.domain.board.Board;
 import io.github.anderslunddev.pedalboard.domain.board.BoardId;
 import io.github.anderslunddev.pedalboard.domain.board.BoardName;
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
-import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
-import io.github.anderslunddev.pedalboard.domain.pedal.PedalName;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalToCreate;
 import io.github.anderslunddev.pedalboard.domain.pedal.Placement;
 import io.github.anderslunddev.pedalboard.domain.user.UserId;
-import io.github.anderslunddev.pedalboard.domain.value.Color;
 import io.github.anderslunddev.pedalboard.domain.value.SurfaceArea;
-import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class BoardRepositoryAdapter {
@@ -25,22 +20,26 @@ public class BoardRepositoryAdapter {
 	private final PedalRepository pedalRepository;
 	private final UserRepository userRepository;
 	private final BoardModelConverter converter;
+	private final PedalModelConverter pedalConverter;
 
 	public BoardRepositoryAdapter(BoardRepository boardRepository, PedalRepository pedalRepository,
-                                  UserRepository userRepository, BoardModelConverter converter) {
+                                  UserRepository userRepository, BoardModelConverter converter, PedalModelConverter pedalConverter) {
 		this.boardRepository = boardRepository;
 		this.pedalRepository = pedalRepository;
 		this.userRepository = userRepository;
         this.converter = converter;
+        this.pedalConverter = pedalConverter;
     }
 
 	public Board createBoard(BoardName name, SurfaceArea surfaceArea, UserId userId) {
 		UserModel user = userRepository.findById(userId.value())
 				.orElseThrow(() -> new IllegalArgumentException("User not found for id " + userId));
 		BoardModel saved = boardRepository
-				.save(new BoardModel(name.value(), surfaceArea.width(), surfaceArea.height(), user));
+				.save(converter.toEntity(name, surfaceArea, user));
 		return converter.toDomain(saved);
 	}
+
+
 
 	public Optional<Board> findByName(BoardName name) {
 		return boardRepository.findByName(name.value()).map(converter::toDomain);
@@ -71,18 +70,10 @@ public class BoardRepositoryAdapter {
 		}
 		BoardModel board = optBoard.get();
 
-		PedalModel pedal = new PedalModel();
-		pedal.setBoard(board);
-		pedal.setName(pedalToCreate.getName().value());
-		pedal.setWidth(pedalToCreate.getSurfaceArea().width());
-		pedal.setHeight(pedalToCreate.getSurfaceArea().height());
-		pedal.setColor(pedalToCreate.getColor().value());
-		pedal.setX(pedalToCreate.getCoordinate().x());
-		pedal.setY(pedalToCreate.getCoordinate().y());
-		pedal.setPlacement(placement.value());
+		PedalModel pedal = pedalConverter.toEntity(pedalToCreate, placement, board);
 
 		PedalModel saved = pedalRepository.save(pedal);
-		return Optional.of(converter.toDomain(saved));
+		return Optional.of(pedalConverter.toDomain(saved));
 	}
 
 

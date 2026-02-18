@@ -2,10 +2,6 @@ package io.github.anderslunddev.pedalboard.model;
 
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
-import io.github.anderslunddev.pedalboard.domain.pedal.PedalName;
-import io.github.anderslunddev.pedalboard.domain.pedal.Placement;
-import io.github.anderslunddev.pedalboard.domain.value.Color;
-import io.github.anderslunddev.pedalboard.domain.value.SurfaceArea;
 import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
 import org.springframework.stereotype.Component;
 
@@ -16,13 +12,15 @@ import java.util.UUID;
 public class PedalRepositoryAdapter {
 
 	private final PedalRepository pedalRepository;
+	private final PedalModelConverter converter;
 
-	public PedalRepositoryAdapter(PedalRepository pedalRepository) {
+	public PedalRepositoryAdapter(PedalRepository pedalRepository, PedalModelConverter converter) {
 		this.pedalRepository = pedalRepository;
+		this.converter = converter;
 	}
 
 	public Optional<Pedal> findById(PedalId id) {
-		return pedalRepository.findById(id.value()).map(PedalRepositoryAdapter::toDomain);
+		return pedalRepository.findById(id.value()).map(converter::toDomain);
 	}
 
 	public Optional<Pedal> updatePosition(PedalId id, Coordinate coordinate) {
@@ -34,7 +32,7 @@ public class PedalRepositoryAdapter {
 		pedal.setX(coordinate.x());
 		pedal.setY(coordinate.y());
 		PedalModel saved = pedalRepository.save(pedal);
-		return Optional.of(toDomain(saved));
+		return Optional.of(converter.toDomain(saved));
 	}
 
 	public boolean deleteByIdIfExists(PedalId id) {
@@ -46,17 +44,4 @@ public class PedalRepositoryAdapter {
 		return true;
 	}
 
-	private static Pedal toDomain(PedalModel entity) {
-		if (entity == null)
-			return null;
-		Color color = new Color(entity.getColor());
-		if (entity.getPlacement() == null || entity.getPlacement() <= 0) {
-			throw new IllegalStateException(
-					"Pedal " + entity.getId() + " has invalid placement: " + entity.getPlacement());
-		}
-		Placement placement = new Placement(entity.getPlacement());
-		return new Pedal(new PedalId(entity.getId()), entity.getBoard() != null ? entity.getBoard().getId() : null,
-				new PedalName(entity.getName()), new SurfaceArea(entity.getWidth(), entity.getHeight()), color,
-				new Coordinate(entity.getX(), entity.getY()), placement);
-	}
 }

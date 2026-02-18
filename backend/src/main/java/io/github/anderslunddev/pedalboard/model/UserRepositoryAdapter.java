@@ -4,24 +4,26 @@ import io.github.anderslunddev.pedalboard.domain.user.User;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 public class UserRepositoryAdapter {
 
 	private final UserRepository userRepository;
+	private final UserModelConverter converter;
 
-	public UserRepositoryAdapter(UserRepository userRepository) {
+	public UserRepositoryAdapter(UserRepository userRepository, UserModelConverter converter) {
 		this.userRepository = userRepository;
+		this.converter = converter;
 	}
 
 	public User createUser(String username, String email, String password) {
-		UserModel saved = userRepository.save(new UserModel(username, email, password));
-		return toDomain(saved);
+		UserModel toSave = converter.toEntity(username, email, password);
+		UserModel saved = userRepository.save(toSave);
+		return converter.toDomain(saved);
 	}
 
 	public Optional<User> findByUsername(String username) {
-		return userRepository.findByUsername(username).map(UserRepositoryAdapter::toDomain);
+		return userRepository.findByUsername(username).map(converter::toDomain);
 	}
 
 	public boolean existsByUsername(String username) {
@@ -32,9 +34,5 @@ public class UserRepositoryAdapter {
 		return userRepository.findByEmail(email).isPresent();
 	}
 
-	private static User toDomain(UserModel entity) {
-		if (entity == null)
-			return null;
-		return new User(entity.getId(), entity.getUsername(), entity.getEmail(), entity.getPassword());
-	}
+	// existence methods stay repository-only; no mapping needed
 }

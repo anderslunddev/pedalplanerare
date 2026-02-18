@@ -5,9 +5,6 @@ import io.github.anderslunddev.pedalboard.domain.board.Board;
 import io.github.anderslunddev.pedalboard.domain.board.BoardId;
 import io.github.anderslunddev.pedalboard.domain.board.BoardName;
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
-import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
-import io.github.anderslunddev.pedalboard.domain.pedal.PedalName;
-import io.github.anderslunddev.pedalboard.domain.pedal.Placement;
 import io.github.anderslunddev.pedalboard.domain.user.UserId;
 import io.github.anderslunddev.pedalboard.domain.value.Color;
 import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
@@ -20,9 +17,15 @@ import java.util.Objects;
 @Component
  class BoardModelConverter {
 
-   Board toDomain(BoardModel entity) {
+    private final PedalModelConverter pedalConverter;
+
+    BoardModelConverter(PedalModelConverter pedalConverter) {
+        this.pedalConverter = pedalConverter;
+    }
+
+    Board toDomain(BoardModel entity) {
         Objects.requireNonNull(entity, "BoardModel must not be null");
-        List<Pedal> domainPedals = entity.getPedals().stream().map(this::toDomain).toList();
+        List<Pedal> domainPedals = entity.getPedals().stream().map(pedalConverter::toDomain).toList();
         BoardName boardName = new BoardName(entity.getName());
         if (entity.getUser() == null || entity.getUser().getId() == null) {
             throw new IllegalStateException("Board " + entity.getId() + " has no associated user");
@@ -32,17 +35,13 @@ import java.util.Objects;
                 new SurfaceArea(entity.getWidth(), entity.getHeight()), domainPedals);
     }
 
-     Pedal toDomain(PedalModel entity) {
-        Objects.requireNonNull(entity, "PedalModel must not be null");
-        Color color = new Color(entity.getColor());
-        if (entity.getPlacement() == null || entity.getPlacement() <= 0) {
-            throw new IllegalStateException(
-                    "Pedal " + entity.getId() + " has invalid placement: " + entity.getPlacement());
-        }
-        Placement placement = new Placement(entity.getPlacement());
-        return new Pedal(new PedalId(entity.getId()), entity.getBoard() != null ? entity.getBoard().getId() : null,
-                new PedalName(entity.getName()), new SurfaceArea(entity.getWidth(), entity.getHeight()), color,
-                new Coordinate(entity.getX(), entity.getY()), placement);
+
+
+	BoardModel toEntity(BoardName name, SurfaceArea surfaceArea, UserModel user) {
+        Objects.requireNonNull(name, "BoardName must not be null");
+        Objects.requireNonNull(surfaceArea, "SurfaceArea must not be null");
+        Objects.requireNonNull(user, "UserModel must not be null");
+        return new BoardModel(name.value(), surfaceArea.width(), surfaceArea.height(), user);
     }
 
 }

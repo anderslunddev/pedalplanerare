@@ -43,6 +43,9 @@ class BoardRepositoryAdapterTest {
 	@Mock
 	private BoardModelConverter converter;
 
+	@Mock
+	private PedalModelConverter pedalConverter;
+
 	@InjectMocks
 	private BoardRepositoryAdapter adapter;
 
@@ -56,8 +59,11 @@ class BoardRepositoryAdapterTest {
 		UserModel userModel = new UserModel();
 		when(userRepository.findById(userUuid)).thenReturn(Optional.of(userModel));
 
+		BoardModel toSave = new BoardModel();
+		when(converter.toEntity(boardName, area, userModel)).thenReturn(toSave);
+
 		BoardModel savedModel = new BoardModel();
-		when(boardRepository.save(any(BoardModel.class))).thenReturn(savedModel);
+		when(boardRepository.save(toSave)).thenReturn(savedModel);
 
 		Board expectedBoard = BoardMother.withIdAndUser(new BoardId(UUID.randomUUID()), userId);
 		when(converter.toDomain(savedModel)).thenReturn(expectedBoard);
@@ -66,7 +72,8 @@ class BoardRepositoryAdapterTest {
 
 		assertSame(expectedBoard, result);
 		verify(userRepository).findById(userUuid);
-		verify(boardRepository).save(any(BoardModel.class));
+		verify(converter).toEntity(boardName, area, userModel);
+		verify(boardRepository).save(toSave);
 		verify(converter).toDomain(savedModel);
 	}
 
@@ -190,7 +197,7 @@ class BoardRepositoryAdapterTest {
 
 		assertTrue(result.isEmpty());
 		verify(boardRepository).findById(id);
-		verifyNoInteractions(pedalRepository, converter);
+		verifyNoInteractions(pedalRepository, converter, pedalConverter);
 	}
 
 	@Test
@@ -208,8 +215,11 @@ class BoardRepositoryAdapterTest {
 				.build();
 		Placement placement = new Placement(1);
 
+		PedalModel pedalToSave = new PedalModel();
+		when(pedalConverter.toEntity(pedalToCreate, placement, boardModel)).thenReturn(pedalToSave);
+
 		PedalModel savedPedalModel = new PedalModel();
-		when(pedalRepository.save(any(PedalModel.class))).thenReturn(savedPedalModel);
+		when(pedalRepository.save(pedalToSave)).thenReturn(savedPedalModel);
 
 		Pedal expectedPedal = new Pedal(
 				new PedalId(UUID.randomUUID()),
@@ -220,15 +230,16 @@ class BoardRepositoryAdapterTest {
 				new Coordinate(1.0, 2.0),
 				new Placement(1)
 		);
-		when(converter.toDomain(savedPedalModel)).thenReturn(expectedPedal);
+		when(pedalConverter.toDomain(savedPedalModel)).thenReturn(expectedPedal);
 
 		Optional<Pedal> result = adapter.addPedalToBoard(boardId, pedalToCreate, placement);
 
 		assertTrue(result.isPresent());
 		assertSame(expectedPedal, result.get());
 		verify(boardRepository).findById(id);
-		verify(pedalRepository).save(any(PedalModel.class));
-		verify(converter).toDomain(savedPedalModel);
+		verify(pedalConverter).toEntity(pedalToCreate, placement, boardModel);
+		verify(pedalRepository).save(pedalToSave);
+		verify(pedalConverter).toDomain(savedPedalModel);
 	}
 }
 
