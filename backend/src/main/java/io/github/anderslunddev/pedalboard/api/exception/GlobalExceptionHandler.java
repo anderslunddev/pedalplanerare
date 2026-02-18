@@ -92,22 +92,9 @@ public class GlobalExceptionHandler {
 	}
 
 	/**
-	 * Handle runtime exceptions that represent business logic errors. These are
-	 * typically client errors (400 Bad Request) rather than server errors.
-	 */
-	@ExceptionHandler(RuntimeException.class)
-	public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
-		String message = ex.getMessage() != null ? ex.getMessage() : "Request processing failed";
-
-		Map<String, Object> body = Map.of("status", HttpStatus.BAD_REQUEST.value(), "error",
-				HttpStatus.BAD_REQUEST.getReasonPhrase(), "message", message);
-
-		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
-	}
-
-	/**
-	 * Catch-all for any unexpected exceptions. Logs the error and returns a generic
-	 * 500 response.
+	 * Catch-all for any unexpected exceptions (including uncaught
+	 * RuntimeExceptions). Logs the error and returns a generic 500 response to
+	 * avoid leaking internal details.
 	 */
 	@ExceptionHandler(Exception.class)
 	public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {

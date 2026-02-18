@@ -81,36 +81,36 @@ class UserRepositoryAdapterTest {
 	@Test
 	void existsByUsername_shouldReturnTrueWhenUserExists() {
 		String username = "exists";
-		when(userRepository.findByUsername(username)).thenReturn(Optional.of(new UserModel()));
+		when(userRepository.existsByUsername(username)).thenReturn(true);
 
 		assertTrue(adapter.existsByUsername(username));
-		verify(userRepository).findByUsername(username);
+		verify(userRepository).existsByUsername(username);
 	}
 
 	@Test
 	void existsByUsername_shouldReturnFalseWhenUserMissing() {
 		String username = "missing";
-		when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+		when(userRepository.existsByUsername(username)).thenReturn(false);
 
 		assertFalse(adapter.existsByUsername(username));
-		verify(userRepository).findByUsername(username);
+		verify(userRepository).existsByUsername(username);
 	}
 
 	@Test
 	void existsByEmail_shouldReturnTrueWhenEmailExists() {
 		String email = "found@example.com";
-		when(userRepository.findByEmail(email)).thenReturn(Optional.of(new UserModel()));
+		when(userRepository.existsByEmail(email)).thenReturn(true);
 
 		assertTrue(adapter.existsByEmail(email));
-		verify(userRepository).findByEmail(email);
+		verify(userRepository).existsByEmail(email);
 	}
 
 	@Test
 	void existsByEmail_shouldReturnFalseWhenEmailMissing() {
 		String email = "none@example.com";
-		when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+		when(userRepository.existsByEmail(email)).thenReturn(false);
 
 		assertFalse(adapter.existsByEmail(email));
-		verify(userRepository).findByEmail(email);
+		verify(userRepository).existsByEmail(email);
 	}
 }

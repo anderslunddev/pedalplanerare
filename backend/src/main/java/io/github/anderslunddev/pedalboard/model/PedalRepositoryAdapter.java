@@ -44,4 +44,7 @@ public class PedalRepositoryAdapter {
 		return true;
 	}
 
+	public Optional<UUID> findBoardOwnerId(PedalId pedalId) {
+		return pedalRepository.findBoardOwnerIdByPedalId(pedalId.value());
+	}
 }

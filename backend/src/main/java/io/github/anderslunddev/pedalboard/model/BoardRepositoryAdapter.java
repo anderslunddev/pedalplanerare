@@ -45,6 +45,10 @@ public class BoardRepositoryAdapter {
 		return boardRepository.findByName(name.value()).map(converter::toDomain);
 	}
 
+	public Optional<Board> findByNameAndUserId(BoardName name, UserId userId) {
+		return boardRepository.findByNameAndUser_Id(name.value(), userId.value()).map(converter::toDomain);
+	}
+
 	public List<Board> findByUserId(UserId userId) {
 		return boardRepository.findByUserId(userId.value()).stream().map(converter::toDomain).toList();
 	}

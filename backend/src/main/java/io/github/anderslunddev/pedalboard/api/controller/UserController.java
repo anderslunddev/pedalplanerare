@@ -1,7 +1,6 @@
 package io.github.anderslunddev.pedalboard.api.controller;
 
 import io.github.anderslunddev.pedalboard.domain.user.User;
-import io.github.anderslunddev.pedalboard.model.UserRepositoryAdapter;
 import io.github.anderslunddev.pedalboard.security.JwtUtil;
 import io.github.anderslunddev.pedalboard.service.user.UserService;
 import jakarta.validation.Valid;
@@ -16,20 +15,16 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
-@CrossOrigin(origins = "*")
 public class UserController {
 
 	private final UserService userService;
 	private final AuthenticationManager authenticationManager;
 	private final JwtUtil jwtUtil;
-	private final UserRepositoryAdapter userRepositoryAdapter;
 
-	public UserController(UserService userService, AuthenticationManager authenticationManager, JwtUtil jwtUtil,
-			UserRepositoryAdapter userRepositoryAdapter) {
+	public UserController(UserService userService, AuthenticationManager authenticationManager, JwtUtil jwtUtil) {
 		this.userService = userService;
 		this.authenticationManager = authenticationManager;
 		this.jwtUtil = jwtUtil;
-		this.userRepositoryAdapter = userRepositoryAdapter;
 	}
 
 	@PostMapping
@@ -45,7 +40,7 @@ public class UserController {
 			var authToken = new UsernamePasswordAuthenticationToken(request.username(), request.password());
 			authenticationManager.authenticate(authToken);
 
-			User user = userRepositoryAdapter.findByUsername(request.username()).orElseThrow();
+			User user = userService.findByUsername(request.username()).orElseThrow();
 
 			String token = jwtUtil.generateToken(user);
 

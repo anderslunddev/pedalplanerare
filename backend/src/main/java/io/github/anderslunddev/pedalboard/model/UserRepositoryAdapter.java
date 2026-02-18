@@ -27,12 +27,10 @@ public class UserRepositoryAdapter {
 	}
 
 	public boolean existsByUsername(String username) {
-		return userRepository.findByUsername(username).isPresent();
+		return userRepository.existsByUsername(username);
 	}
 
 	public boolean existsByEmail(String email) {
-		return userRepository.findByEmail(email).isPresent();
+		return userRepository.existsByEmail(email);
 	}
-
-	// existence methods stay repository-only; no mapping needed
 }

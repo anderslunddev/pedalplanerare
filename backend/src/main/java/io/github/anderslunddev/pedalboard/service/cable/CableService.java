@@ -98,11 +98,16 @@ public class CableService {
 
 	/**
 	 * Deletes all cables that reference the given pedal (source or destination).
-	 * Runs in a separate transaction so the persistence context is cleared before
-	 * the pedal is deleted, avoiding "Row was updated or deleted" when deleting
-	 * entities with {@code @ElementCollection}.
+	 * <p>
+	 * Uses {@code REQUIRES_NEW} so the cable deletes (including their
+	 * {@code @ElementCollection} path points) are flushed and committed in an
+	 * independent transaction before the caller deletes the pedal entity itself.
+	 * Without this, Hibernate's persistence context can hold stale references to
+	 * the cable's element-collection rows, causing
+	 * {@code StaleObjectStateException} ("Row was updated or deleted by another
+	 * transaction") when the outer transaction commits.
 	 */
-	@Transactional(propagation = Propagation.REQUIRES_NEW) //TODO look up why
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void deleteCablesForPedal(PedalId pedalId) {
 		cableRepositoryAdapter.deleteBySourcePedalIdOrDestinationPedalId(pedalId);
 		cableRepositoryAdapter.flush();

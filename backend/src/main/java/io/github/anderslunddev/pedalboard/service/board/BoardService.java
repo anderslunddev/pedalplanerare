@@ -26,9 +26,8 @@ public class BoardService {
 
 	@PreAuthorize("@ownershipChecker.isCurrentUser(#userId)")
 	public Board createBoard(BoardName name, SurfaceArea surfaceArea, UserId userId) {
-		// Check if name already exists
-		if (boardRepositoryAdapter.findByName(name).isPresent()) {
-			throw new IllegalArgumentException("A board with the name '" + name.value() + "' already exists.");
+		if (boardRepositoryAdapter.findByNameAndUserId(name, userId).isPresent()) {
+			throw new IllegalArgumentException("You already have a board named '" + name.value() + "'.");
 		}
 		return boardRepositoryAdapter.createBoard(name, surfaceArea, userId);
 	}
