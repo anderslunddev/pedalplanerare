@@ -2,6 +2,7 @@ package io.github.anderslunddev.pedalboard.service.cable.calculation;
 
 import io.github.anderslunddev.pedalboard.domain.board.Board;
 import io.github.anderslunddev.pedalboard.domain.board.BoardId;
+import io.github.anderslunddev.pedalboard.domain.board.BoardMother;
 import io.github.anderslunddev.pedalboard.domain.board.BoardName;
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
@@ -27,8 +28,7 @@ class AStarRouterTest {
 	@Test
 	void findsPathOnEmptyGrid() {
 		UUID boardId = UUID.randomUUID();
-		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("B"),
-				new SurfaceArea(5.0, 5.0), List.of());
+		Board board = BoardMother.withDimensions(5.0, 5.0);
 		Pedal source = pedal(boardId, "src", 0.25, 0.25, 0.5, 0.5);
 		Pedal dest = pedal(boardId, "dst", 4.25, 4.25, 0.5, 0.5);
 		Grid grid = new Grid(board, List.of(source, dest), source, dest);
@@ -48,8 +48,7 @@ class AStarRouterTest {
 	@Test
 	void findsPathAroundObstacle() {
 		UUID boardId = UUID.randomUUID();
-		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("B"),
-				new SurfaceArea(5.0, 5.0), List.of());
+		Board board = BoardMother.withDimensions(5.0, 5.0);
 		Pedal source = pedal(boardId, "src", 0.25, 2.25, 0.5, 0.5);
 		Pedal dest = pedal(boardId, "dst", 4.25, 2.25, 0.5, 0.5);
 		Pedal obstacle = pedal(boardId, "obs", 2.0, 2.0, 1.0, 1.0);
@@ -69,8 +68,7 @@ class AStarRouterTest {
 	@Test
 	void returnsEmptyWhenNoPathExists() {
 		UUID boardId = UUID.randomUUID();
-		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("B"),
-				new SurfaceArea(5.0, 5.0), List.of());
+		Board board = BoardMother.withDimensions(5.0, 5.0);
 		Pedal source = pedal(boardId, "src", 0.25, 2.25, 0.5, 0.5);
 		Pedal dest = pedal(boardId, "dst", 4.25, 2.25, 0.5, 0.5);
 		// Full-height wall separating left and right

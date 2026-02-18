@@ -29,6 +29,11 @@ public final class BoardMother {
 		return new Board(id, userId, new BoardName("Test Board"), new SurfaceArea(60.0, 30.0), List.of());
 	}
 
+	public static Board withDimensions(double width, double height) {
+		Board base = simple();
+		return new Board(base.id(), base.userId(), base.name(), new SurfaceArea(width, height), base.pedals());
+	}
+
 	public static Board withPedals(List<Pedal> pedals) {
 		Board base = simple();
 		return new Board(base.id(), base.userId(), base.name(), base.surfaceArea(), List.copyOf(pedals));

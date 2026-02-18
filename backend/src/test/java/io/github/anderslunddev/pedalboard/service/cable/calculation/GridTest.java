@@ -2,6 +2,7 @@ package io.github.anderslunddev.pedalboard.service.cable.calculation;
 
 import io.github.anderslunddev.pedalboard.domain.board.Board;
 import io.github.anderslunddev.pedalboard.domain.board.BoardId;
+import io.github.anderslunddev.pedalboard.domain.board.BoardMother;
 import io.github.anderslunddev.pedalboard.domain.board.BoardName;
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
@@ -24,8 +25,7 @@ class GridTest {
 
 	@Test
 	void inBoundsAcceptsCellsInsideGrid() {
-		Board board = new Board(new BoardId(UUID.randomUUID()), new UserId(UUID.randomUUID()), new BoardName("B"),
-				new SurfaceArea(5.0, 5.0), List.of());
+		Board board = BoardMother.withDimensions(5.0, 5.0);
 		Pedal source = pedal(0, 0, 0.5, 0.5);
 		Pedal dest = pedal(4, 4, 0.5, 0.5);
 		Grid grid = new Grid(board, List.of(source, dest), source, dest);
@@ -36,8 +36,7 @@ class GridTest {
 
 	@Test
 	void inBoundsRejectsCellsOutsideGrid() {
-		Board board = new Board(new BoardId(UUID.randomUUID()), new UserId(UUID.randomUUID()), new BoardName("B"),
-				new SurfaceArea(5.0, 5.0), List.of());
+		Board board = BoardMother.withDimensions(5.0, 5.0);
 		Pedal source = pedal(0, 0, 0.5, 0.5);
 		Pedal dest = pedal(4, 4, 0.5, 0.5);
 		Grid grid = new Grid(board, List.of(source, dest), source, dest);
@@ -50,8 +49,7 @@ class GridTest {
 
 	@Test
 	void toCellAndToPointRoundTrip() {
-		Board board = new Board(new BoardId(UUID.randomUUID()), new UserId(UUID.randomUUID()), new BoardName("B"),
-				new SurfaceArea(5.0, 5.0), List.of());
+		Board board = BoardMother.withDimensions(5.0, 5.0);
 		Pedal source = pedal(0, 0, 0.5, 0.5);
 		Pedal dest = pedal(4, 4, 0.5, 0.5);
 		Grid grid = new Grid(board, List.of(source, dest), source, dest);
@@ -66,8 +64,7 @@ class GridTest {
 	@Test
 	void obstaclePedalMarksCellsAsBlocked() {
 		UUID boardId = UUID.randomUUID();
-		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("B"),
-				new SurfaceArea(5.0, 5.0), List.of());
+		Board board = BoardMother.withDimensions(5.0, 5.0);
 		Pedal source = pedal(boardId, "src", 0, 0, 0.5, 0.5);
 		Pedal dest = pedal(boardId, "dst", 4.5, 4.5, 0.5, 0.5);
 		Pedal obstacle = pedal(boardId, "obs", 2.0, 2.0, 1.0, 1.0);
@@ -82,8 +79,7 @@ class GridTest {
 	@Test
 	void sourceAndDestinationAreNotBlocked() {
 		UUID boardId = UUID.randomUUID();
-		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("B"),
-				new SurfaceArea(5.0, 5.0), List.of());
+		Board board = BoardMother.withDimensions(5.0, 5.0);
 		Pedal source = pedal(boardId, "src", 0.25, 0.25, 0.5, 0.5);
 		Pedal dest = pedal(boardId, "dst", 4.25, 4.25, 0.5, 0.5);
 		Grid grid = new Grid(board, List.of(source, dest), source, dest);
