@@ -64,22 +64,22 @@ public final class PedalToCreate {
 		}
 
 		public Builder name(PedalName name) {
-			this.name = Objects.requireNonNull(name, "name must not be null");
+			this.name = name;
 			return this;
 		}
 
 		public Builder surfaceArea(SurfaceArea surfaceArea) {
-			this.surfaceArea = Objects.requireNonNull(surfaceArea, "surfaceArea must not be null");
+			this.surfaceArea = surfaceArea;
 			return this;
 		}
 
 		public Builder color(Color color) {
-			this.color = Objects.requireNonNull(color, "color must not be null");
+			this.color = color;
 			return this;
 		}
 
 		public Builder coordinate(Coordinate coordinate) {
-			this.coordinate = Objects.requireNonNull(coordinate, "coordinate must not be null");
+			this.coordinate = coordinate;
 			return this;
 		}
 

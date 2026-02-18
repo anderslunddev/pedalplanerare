@@ -1,0 +1,116 @@
+package io.github.anderslunddev.pedalboard.model;
+
+import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.UserMother;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class UserRepositoryAdapterTest {
+
+	@Mock
+	private UserRepository userRepository;
+
+	@Mock
+	private UserModelConverter converter;
+
+	@InjectMocks
+	private UserRepositoryAdapter adapter;
+
+	@Test
+	void createUser_shouldConvertSaveAndReturnDomainUser() {
+		String username = "alice";
+		String email = "alice@example.com";
+		String password = "secret";
+
+		UserModel toSave = new UserModel();
+		when(converter.toEntity(username, email, password)).thenReturn(toSave);
+
+		UserModel savedModel = new UserModel();
+		when(userRepository.save(toSave)).thenReturn(savedModel);
+
+		User expectedUser = UserMother.withUsername(username);
+		when(converter.toDomain(savedModel)).thenReturn(expectedUser);
+
+		User result = adapter.createUser(username, email, password);
+
+		assertSame(expectedUser, result);
+		verify(converter).toEntity(username, email, password);
+		verify(userRepository).save(toSave);
+		verify(converter).toDomain(savedModel);
+	}
+
+	@Test
+	void findByUsername_shouldReturnMappedUserWhenPresent() {
+		String username = "bob";
+		UserModel model = new UserModel();
+		when(userRepository.findByUsername(username)).thenReturn(Optional.of(model));
+
+		User expected = UserMother.withUsername(username);
+		when(converter.toDomain(model)).thenReturn(expected);
+
+		Optional<User> result = adapter.findByUsername(username);
+
+		assertTrue(result.isPresent());
+		assertSame(expected, result.get());
+		verify(userRepository).findByUsername(username);
+		verify(converter).toDomain(model);
+	}
+
+	@Test
+	void findByUsername_shouldReturnEmptyWhenMissing() {
+		String username = "nobody";
+		when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+		Optional<User> result = adapter.findByUsername(username);
+
+		assertTrue(result.isEmpty());
+		verify(userRepository).findByUsername(username);
+		verifyNoInteractions(converter);
+	}
+
+	@Test
+	void existsByUsername_shouldReturnTrueWhenUserExists() {
+		String username = "exists";
+		when(userRepository.findByUsername(username)).thenReturn(Optional.of(new UserModel()));
+
+		assertTrue(adapter.existsByUsername(username));
+		verify(userRepository).findByUsername(username);
+	}
+
+	@Test
+	void existsByUsername_shouldReturnFalseWhenUserMissing() {
+		String username = "missing";
+		when(userRepository.findByUsername(username)).thenReturn(Optional.empty());
+
+		assertFalse(adapter.existsByUsername(username));
+		verify(userRepository).findByUsername(username);
+	}
+
+	@Test
+	void existsByEmail_shouldReturnTrueWhenEmailExists() {
+		String email = "found@example.com";
+		when(userRepository.findByEmail(email)).thenReturn(Optional.of(new UserModel()));
+
+		assertTrue(adapter.existsByEmail(email));
+		verify(userRepository).findByEmail(email);
+	}
+
+	@Test
+	void existsByEmail_shouldReturnFalseWhenEmailMissing() {
+		String email = "none@example.com";
+		when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+		assertFalse(adapter.existsByEmail(email));
+		verify(userRepository).findByEmail(email);
+	}
+}
