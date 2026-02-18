@@ -1,5 +1,7 @@
 package io.github.anderslunddev.pedalboard.domain.value;
 
+import java.util.Objects;
+
 public record SurfaceArea(Double width, Double height) {
 	public SurfaceArea {
 		if (width == null || width <= 0 || height == null || height <= 0) {
@@ -12,6 +14,10 @@ public record SurfaceArea(Double width, Double height) {
 	 * the {@code other} rectangle positioned at {@code otherTopLeft}.
 	 */
 	public boolean overlapsWith(SurfaceArea other, Coordinate thisTopLeft, Coordinate otherTopLeft) {
+		Objects.requireNonNull(other, "other must not be null");
+		Objects.requireNonNull(thisTopLeft, "thisTopLeft must not be null");
+		Objects.requireNonNull(otherTopLeft, "otherTopLeft must not be null");
+
 		double ax = thisTopLeft.x();
 		double ay = thisTopLeft.y();
 		double aRight = ax + width;

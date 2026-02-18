@@ -35,6 +35,7 @@ public record Board(BoardId id, UserId userId, BoardName name, SurfaceArea surfa
 	 *             if the requested placement is already taken
 	 */
 	public Placement resolvePlacementFor(PedalToCreate pedalToCreate) {
+		Objects.requireNonNull(pedalToCreate, "pedalToCreate must not be null");
 		int maxExisting = pedals.stream().map(Pedal::placement).mapToInt(Placement::value).max().orElse(0);
 
 		Optional<Placement> placementOptional = pedalToCreate.getPlacement();
@@ -59,6 +60,7 @@ public record Board(BoardId id, UserId userId, BoardName name, SurfaceArea surfa
 	 * this board (same rule as drag: pedals must not overlap).
 	 */
 	public boolean wouldOverlapWithExisting(PedalToCreate toCreate) {
+		Objects.requireNonNull(toCreate, "toCreate must not be null");
 		return pedals.stream().anyMatch(existing -> existing.overlaps(toCreate));
 	}
 }

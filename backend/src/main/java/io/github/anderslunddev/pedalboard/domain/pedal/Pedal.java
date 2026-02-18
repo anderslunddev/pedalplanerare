@@ -21,6 +21,7 @@ public record Pedal(PedalId id, UUID boardId, PedalName name, SurfaceArea surfac
 	}
 
 	public boolean overlaps(PedalToCreate toCreate) {
+		Objects.requireNonNull(toCreate, "toCreate must not be null");
 		return surfaceArea.overlapsWith(
 				toCreate.getSurfaceArea(),
 				coordinate,
