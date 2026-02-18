@@ -2,6 +2,7 @@ package io.github.anderslunddev.pedalboard.model;
 
 import io.github.anderslunddev.pedalboard.domain.board.Board;
 import io.github.anderslunddev.pedalboard.domain.board.BoardId;
+import io.github.anderslunddev.pedalboard.domain.board.BoardMother;
 import io.github.anderslunddev.pedalboard.domain.board.BoardName;
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
@@ -58,13 +59,7 @@ class BoardRepositoryAdapterTest {
 		BoardModel savedModel = new BoardModel();
 		when(boardRepository.save(any(BoardModel.class))).thenReturn(savedModel);
 
-		Board expectedBoard = new Board(
-				new BoardId(UUID.randomUUID()),
-				userId,
-				boardName,
-				area,
-				List.of()
-		);
+		Board expectedBoard = BoardMother.withIdAndUser(new BoardId(UUID.randomUUID()), userId);
 		when(converter.toDomain(savedModel)).thenReturn(expectedBoard);
 
 		Board result = adapter.createBoard(boardName, area, userId);
@@ -92,13 +87,7 @@ class BoardRepositoryAdapterTest {
 		BoardName name = new BoardName("Existing");
 		BoardModel model = new BoardModel();
 		when(boardRepository.findByName(name.value())).thenReturn(Optional.of(model));
-		Board expected = new Board(
-				new BoardId(UUID.randomUUID()),
-				new UserId(UUID.randomUUID()),
-				name,
-				new SurfaceArea(10.0, 5.0),
-				List.of()
-		);
+		Board expected = BoardMother.withName(name.value());
 		when(converter.toDomain(model)).thenReturn(expected);
 
 		Optional<Board> result = adapter.findByName(name);
@@ -130,20 +119,8 @@ class BoardRepositoryAdapterTest {
 		BoardModel m2 = new BoardModel();
 		when(boardRepository.findByUserId(userUuid)).thenReturn(List.of(m1, m2));
 
-		Board b1 = new Board(
-				new BoardId(UUID.randomUUID()),
-				new UserId(UUID.randomUUID()),
-				new BoardName("B1"),
-				new SurfaceArea(10.0, 5.0),
-				List.of()
-		);
-		Board b2 = new Board(
-				new BoardId(UUID.randomUUID()),
-				new UserId(UUID.randomUUID()),
-				new BoardName("B2"),
-				new SurfaceArea(20.0, 10.0),
-				List.of()
-		);
+		Board b1 = BoardMother.withName("B1");
+		Board b2 = BoardMother.withName("B2");
 		when(converter.toDomain(m1)).thenReturn(b1);
 		when(converter.toDomain(m2)).thenReturn(b2);
 
@@ -162,13 +139,7 @@ class BoardRepositoryAdapterTest {
 		BoardModel model = new BoardModel();
 		when(boardRepository.findById(id)).thenReturn(Optional.of(model));
 
-		Board expected = new Board(
-				boardId,
-				new UserId(UUID.randomUUID()),
-				new BoardName("B"),
-				new SurfaceArea(10.0, 5.0),
-				List.of()
-		);
+		Board expected = BoardMother.withIdAndUser(boardId, new UserId(UUID.randomUUID()));
 		when(converter.toDomain(model)).thenReturn(expected);
 
 		Optional<Board> result = adapter.findById(boardId);
