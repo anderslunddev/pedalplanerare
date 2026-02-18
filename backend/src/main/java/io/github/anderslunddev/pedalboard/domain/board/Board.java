@@ -59,24 +59,6 @@ public record Board(BoardId id, UserId userId, BoardName name, SurfaceArea surfa
 	 * this board (same rule as drag: pedals must not overlap).
 	 */
 	public boolean wouldOverlapWithExisting(PedalToCreate toCreate) {
-		Coordinate c = toCreate.getCoordinate();
-		SurfaceArea area = toCreate.getSurfaceArea();
-		double ax = c.x();
-		double ay = c.y();
-		double aRight = ax + area.width();
-		double aBottom = ay + area.height();
-
-		for (Pedal existing : pedals) {
-			double bx = existing.coordinate().x();
-			double by = existing.coordinate().y();
-			double bRight = bx + existing.surfaceArea().width();
-			double bBottom = by + existing.surfaceArea().height();
-			// overlap if not (a is left of b OR b is left of a OR a is above b OR b is above a)
-			boolean overlaps = !(aRight <= bx || bRight <= ax || aBottom <= by || bBottom <= ay);
-			if (overlaps) {
-				return true;
-			}
-		}
-		return false;
+		return pedals.stream().anyMatch(existing -> existing.overlaps(toCreate));
 	}
 }

@@ -19,4 +19,11 @@ public record Pedal(PedalId id, UUID boardId, PedalName name, SurfaceArea surfac
 		Objects.requireNonNull(coordinate, "Pedal coordinate must not be null");
 		Objects.requireNonNull(placement, "Pedal placement must not be null");
 	}
+
+	public boolean overlaps(PedalToCreate toCreate) {
+		return surfaceArea.overlapsWith(
+				toCreate.getSurfaceArea(),
+				coordinate,
+				toCreate.getCoordinate());
+	}
 }
