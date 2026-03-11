@@ -37,4 +37,4 @@ export type User = {
   email: string;
 };
 
-export const PIXELS_PER_UNIT = 5;
+export const PIXELS_PER_UNIT = 8;

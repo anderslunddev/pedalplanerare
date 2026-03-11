@@ -5,7 +5,7 @@ import CreateBoardDialog from "./components/CreateBoardDialog";
 import AddPedalDialog from "./components/AddPedalDialog";
 import { useAuth } from "./useAuth";
 import { authHeaders } from "./api";
-import { isOverlapping } from "./utils";
+import { isOverlapping, getContrastTextColor } from "./utils";
 import { Board, Pedal, Cable, PIXELS_PER_UNIT } from "./types";
 
 const CABLE_COLORS = ["#e5e7eb", "#f97316", "#22c55e", "#3b82f6", "#ec4899", "#a855f7"];
@@ -62,7 +62,6 @@ const App: React.FC = () => {
   const [board, setBoard] = useState<Board | null>(null);
   const [pedals, setPedals] = useState<Pedal[]>([]);
   const [cables, setCables] = useState<Cable[]>([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [showCreateBoardDialog, setShowCreateBoardDialog] = useState(false);
@@ -70,10 +69,15 @@ const App: React.FC = () => {
 
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState<{ dx: number; dy: number } | null>(null);
+  const [dragOriginal, setDragOriginal] = useState<{ x: number; y: number } | null>(null);
 
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
 
+  const [confirmingDeleteBoard, setConfirmingDeleteBoard] = useState(false);
+
   useEffect(() => {
+    setConfirmingDeleteBoard(false);
+    setError(null);
     if (activeBoardId) {
       loadBoard(activeBoardId);
     } else {
@@ -84,7 +88,6 @@ const App: React.FC = () => {
   }, [activeBoardId]);
 
   const loadBoard = async (boardId: string) => {
-    setLoading(true);
     setError(null);
     try {
       const response = await fetch(`/api/boards/${boardId}`, {
@@ -103,27 +106,20 @@ const App: React.FC = () => {
       }
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Failed to load board");
-    } finally {
-      setLoading(false);
     }
   };
 
   const generateSequence = useCallback(async () => {
     if (!board) return;
-    setError(null);
-    setCables([]);
     try {
       const response = await fetch(`/api/boards/${board.id}/generate-sequence`, {
         method: "POST",
         headers: authHeaders(authToken),
       });
-      if (!response.ok) {
-        const msg = await response.text();
-        throw new Error(msg || `Failed to generate sequence (${response.status})`);
-      }
+      if (!response.ok) return;
       setCables(await response.json());
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to generate sequence.");
+    } catch {
+      // cable generation is best-effort after actions
     }
   }, [board, authToken]);
 
@@ -144,6 +140,7 @@ const App: React.FC = () => {
       setPedals([]);
       setCables([]);
       setSidebarRefreshKey((k) => k + 1);
+      setConfirmingDeleteBoard(false);
     } catch {
       setError("Could not delete board. Try again.");
     }
@@ -161,22 +158,7 @@ const App: React.FC = () => {
         return;
       }
       setPedals((prev) => prev.filter((p) => p.id !== pedalId));
-      if (board?.id) {
-        try {
-          const cablesRes = await fetch(`/api/boards/${board.id}/cables`, {
-            headers: authHeaders(authToken),
-          });
-          if (cablesRes.ok) {
-            setCables(await cablesRes.json());
-            return;
-          }
-        } catch {
-          /* fall through to local filter */
-        }
-      }
-      setCables((prev) =>
-        prev.filter((c) => c.sourcePedalId !== pedalId && c.destinationPedalId !== pedalId)
-      );
+      await generateSequence();
     } catch {
       setError("Could not remove pedal. Try again.");
     }
@@ -186,6 +168,7 @@ const App: React.FC = () => {
     if (!board) return;
     const boardRect = (e.currentTarget.parentElement as HTMLDivElement).getBoundingClientRect();
     setDraggingId(pedal.id);
+    setDragOriginal({ x: pedal.x, y: pedal.y });
     setDragOffset({
       dx: e.clientX - boardRect.left - pedal.x * PIXELS_PER_UNIT,
       dy: e.clientY - boardRect.top - pedal.y * PIXELS_PER_UNIT,
@@ -215,8 +198,10 @@ const App: React.FC = () => {
   const handleMouseUpBoard = async () => {
     if (!draggingId) return;
     const pedal = pedals.find((p) => p.id === draggingId);
+    const origPos = dragOriginal;
     setDraggingId(null);
     setDragOffset(null);
+    setDragOriginal(null);
     if (!pedal || !board) return;
 
     const otherPedals = pedals.filter((p) => p.id !== pedal.id);
@@ -228,24 +213,12 @@ const App: React.FC = () => {
     if (overlappedWith) {
       const adjacent = findAdjacentPosition(pedal, overlappedWith, otherPedals, board);
       if (!adjacent) {
-        try {
-          const res = await fetch(`/api/pedals/${pedal.id}`, {
-            method: "DELETE",
-            headers: authHeaders(authToken),
-          });
-          if (!res.ok) {
-            setError("Could not remove pedal. Try again.");
-            return;
-          }
-        } catch {
-          setError("Could not remove pedal. Try again.");
-          return;
+        if (origPos) {
+          setPedals((prev) =>
+            prev.map((p) => (p.id === pedal.id ? { ...p, x: origPos.x, y: origPos.y } : p))
+          );
         }
-        setPedals((prev) => prev.filter((p) => p.id !== pedal.id));
-        setCables((prev) =>
-          prev.filter((c) => c.sourcePedalId !== pedal.id && c.destinationPedalId !== pedal.id)
-        );
-        await generateSequence();
+        setError("No room to place pedal there. Snapped back to original position.");
         return;
       }
       finalX = adjacent.x;
@@ -271,6 +244,12 @@ const App: React.FC = () => {
     }
   };
 
+  const handlePedalCreated = async (newPedal: Pedal) => {
+    setPedals((prev) => [...prev, newPedal]);
+    setShowPedalForm(false);
+    await generateSequence();
+  };
+
   const handleLogout = () => {
     logout();
     setActiveBoardId(null);
@@ -282,6 +261,10 @@ const App: React.FC = () => {
 
   const rectWidth = board ? board.width * PIXELS_PER_UNIT : 0;
   const rectHeight = board ? board.height * PIXELS_PER_UNIT : 0;
+
+  const totalCableLength = cables.reduce((sum, c) => sum + c.totalLength, 0);
+
+  const pedalById = (id: string) => pedals.find((p) => p.id === id);
 
   return (
     <div className="min-h-screen flex bg-slate-900">
@@ -311,7 +294,7 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 overflow-auto">
           {!board ? (
             <div className="flex flex-col items-center justify-center min-h-[60vh]">
               <div className="text-center space-y-4">
@@ -329,27 +312,45 @@ const App: React.FC = () => {
             </div>
           ) : (
             <div className="space-y-6">
+              {/* Board header */}
               <div className="flex items-center justify-between">
-                <h2 className="text-xl text-slate-200">{board.name}</h2>
-                <div className="flex gap-2">
+                <div className="flex items-baseline gap-3">
+                  <h2 className="text-xl text-slate-200">{board.name}</h2>
+                  <span className="text-sm text-slate-400">
+                    {board.width} &times; {board.height} cm
+                  </span>
+                </div>
+                <div className="flex gap-2 items-center">
                   <button
                     onClick={() => setShowPedalForm(true)}
                     className="inline-flex items-center justify-center rounded bg-emerald-500 px-3 py-1.5 text-sm font-medium hover:bg-emerald-400"
                   >
                     Add Pedal
                   </button>
-                  <button
-                    onClick={generateSequence}
-                    className="inline-flex items-center justify-center rounded bg-sky-500 px-3 py-1.5 text-sm font-medium hover:bg-sky-400"
-                  >
-                    Connect Pedals
-                  </button>
-                  <button
-                    onClick={handleDeleteBoard}
-                    className="inline-flex items-center justify-center rounded bg-red-600 px-3 py-1.5 text-sm font-medium hover:bg-red-500"
-                  >
-                    Delete Board
-                  </button>
+                  {!confirmingDeleteBoard ? (
+                    <button
+                      onClick={() => setConfirmingDeleteBoard(true)}
+                      className="inline-flex items-center justify-center rounded bg-red-600/70 px-3 py-1.5 text-sm font-medium hover:bg-red-500"
+                    >
+                      Delete Board
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-1.5 bg-red-900/40 border border-red-700 rounded px-3 py-1">
+                      <span className="text-xs text-red-200">Delete this board?</span>
+                      <button
+                        onClick={handleDeleteBoard}
+                        className="px-2 py-0.5 text-xs rounded bg-red-600 hover:bg-red-500 text-white font-medium"
+                      >
+                        Yes
+                      </button>
+                      <button
+                        onClick={() => setConfirmingDeleteBoard(false)}
+                        className="px-2 py-0.5 text-xs rounded border border-slate-500 text-slate-300 hover:bg-slate-700"
+                      >
+                        No
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -359,19 +360,25 @@ const App: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex flex-col items-center space-y-3">
-                <div className="text-sm text-slate-300">
-                  {board.width} &times; {board.height} cm
+              {pedals.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <p className="text-slate-400 mb-4">
+                    No pedals on this board yet. Add pedals to get started
+                    — cable lengths will be calculated automatically.
+                  </p>
+                  <button
+                    onClick={() => setShowPedalForm(true)}
+                    className="inline-flex items-center justify-center rounded bg-emerald-500 px-5 py-2 text-sm font-medium hover:bg-emerald-400"
+                  >
+                    Add Your First Pedal
+                  </button>
                 </div>
-                <div className="flex flex-col">
-                  <div className="flex items-end">
-                    <div className="mr-2 flex flex-col items-end text-[10px] text-slate-400">
-                      {[0, board.height / 2, board.height].map((v) => (
-                        <span key={v.toFixed(1)}>{v.toFixed(1)} cm</span>
-                      ))}
-                    </div>
+              ) : (
+                <>
+                  {/* Board canvas */}
+                  <div className="flex justify-center">
                     <div
-                      className="relative bg-slate-700"
+                      className="relative bg-slate-700 rounded"
                       style={{ width: rectWidth, height: rectHeight }}
                       onMouseMove={handleMouseMoveBoard}
                       onMouseUp={handleMouseUpBoard}
@@ -382,6 +389,53 @@ const App: React.FC = () => {
                         width={rectWidth}
                         height={rectHeight}
                       >
+                        {/* Grid lines */}
+                        {board && Array.from({ length: Math.floor(board.width) + 1 }, (_, i) => i).map((v) => (
+                          <line
+                            key={`gx-${v}`}
+                            x1={v * PIXELS_PER_UNIT} y1={0}
+                            x2={v * PIXELS_PER_UNIT} y2={rectHeight}
+                            stroke={v % 5 === 0 ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.06)"}
+                            strokeWidth={v % 5 === 0 ? 1 : 0.5}
+                          />
+                        ))}
+                        {board && Array.from({ length: Math.floor(board.height) + 1 }, (_, i) => i).map((v) => (
+                          <line
+                            key={`gy-${v}`}
+                            x1={0} y1={v * PIXELS_PER_UNIT}
+                            x2={rectWidth} y2={v * PIXELS_PER_UNIT}
+                            stroke={v % 5 === 0 ? "rgba(148,163,184,0.18)" : "rgba(148,163,184,0.06)"}
+                            strokeWidth={v % 5 === 0 ? 1 : 0.5}
+                          />
+                        ))}
+
+                        {/* Tick labels along edges */}
+                        {board && Array.from({ length: Math.floor(board.width / 10) + 1 }, (_, i) => i * 10).filter(v => v <= board.width).map((v) => (
+                          <text
+                            key={`tx-${v}`}
+                            x={v * PIXELS_PER_UNIT}
+                            y={rectHeight - 3}
+                            textAnchor="middle"
+                            fill="rgba(148,163,184,0.5)"
+                            fontSize={9}
+                          >
+                            {v}
+                          </text>
+                        ))}
+                        {board && Array.from({ length: Math.floor(board.height / 10) + 1 }, (_, i) => i * 10).filter(v => v <= board.height).map((v) => (
+                          <text
+                            key={`ty-${v}`}
+                            x={3}
+                            y={v * PIXELS_PER_UNIT + 10}
+                            textAnchor="start"
+                            fill="rgba(148,163,184,0.5)"
+                            fontSize={9}
+                          >
+                            {v}
+                          </text>
+                        ))}
+
+                        {/* Cable paths */}
                         {cables.map((cable, index) => {
                           if (!cable.pathPoints?.length) return null;
                           const pts = cable.pathPoints.map((p) => ({
@@ -394,62 +448,97 @@ const App: React.FC = () => {
                               key={cable.id}
                               d={buildCablePath(pts)}
                               stroke={CABLE_COLORS[index % CABLE_COLORS.length]}
-                              strokeWidth={2}
+                              strokeWidth={2.5}
                               fill="none"
                               strokeLinecap="round"
                               strokeLinejoin="round"
+                              opacity={0.85}
                             />
                           );
                         })}
                       </svg>
 
-                      {pedals.map((pedal) => (
-                        <div
-                          key={pedal.id}
-                          className="absolute rounded shadow cursor-move flex items-center justify-center text-[10px] font-medium group"
-                          style={{
-                            width: pedal.width * PIXELS_PER_UNIT,
-                            height: pedal.height * PIXELS_PER_UNIT,
-                            left: pedal.x * PIXELS_PER_UNIT,
-                            top: pedal.y * PIXELS_PER_UNIT,
-                            backgroundColor: pedal.color,
-                          }}
-                          onMouseDown={(e) => handleMouseDownPedal(e, pedal)}
-                        >
-                          <div className="absolute -top-1 -left-1 h-4 w-4 rounded-full bg-slate-900/80 text-[8px] text-slate-100 flex items-center justify-center border border-slate-500">
-                            {pedal.placement ?? ""}
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDeletePedal(pedal.id);
+                      {pedals.map((pedal) => {
+                        const textColor = getContrastTextColor(pedal.color);
+                        return (
+                          <div
+                            key={pedal.id}
+                            className="absolute rounded shadow-md cursor-move flex items-center justify-center text-[11px] font-semibold group select-none"
+                            style={{
+                              width: pedal.width * PIXELS_PER_UNIT,
+                              height: pedal.height * PIXELS_PER_UNIT,
+                              left: pedal.x * PIXELS_PER_UNIT,
+                              top: pedal.y * PIXELS_PER_UNIT,
+                              backgroundColor: pedal.color,
+                              color: textColor,
                             }}
-                            className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-600 text-[8px] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            onMouseDown={(e) => handleMouseDownPedal(e, pedal)}
                           >
-                            &times;
-                          </button>
-                          <span className="px-1 text-slate-900">{pedal.name}</span>
-                        </div>
-                      ))}
+                            <div className="absolute -top-2 -left-2 h-5 w-5 rounded-full bg-slate-900/90 text-[9px] text-slate-100 flex items-center justify-center border border-slate-500 font-bold">
+                              {pedal.placement ?? ""}
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeletePedal(pedal.id);
+                              }}
+                              className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-600 text-[10px] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                            >
+                              &times;
+                            </button>
+                            <span className="px-1 truncate">{pedal.name}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
-                  <div className="mt-1 text-[10px] text-slate-400 text-center">
-                    0 cm
-                    <span className="mx-2">&rarr;</span>
-                    {board.width.toFixed(1)} cm
-                  </div>
-                </div>
-              </div>
 
-              {cables.length > 0 && (
-                <div className="mt-6">
-                  <h2 className="text-sm font-semibold mb-2 text-slate-300">Cables</h2>
-                  <ul className="text-xs text-slate-200 space-y-1">
-                    {cables.map((cable) => (
-                      <li key={cable.id}>{cable.totalLength.toFixed(1)} cm</li>
-                    ))}
-                  </ul>
-                </div>
+                  {/* Cable summary */}
+                  {cables.length > 0 && (
+                    <div className="bg-slate-800 rounded-lg border border-slate-700 p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-sm font-semibold text-slate-200">Cable Summary</h3>
+                        <span className="text-sm font-bold text-indigo-400">
+                          Total: {totalCableLength.toFixed(1)} cm
+                        </span>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-xs text-slate-400 border-b border-slate-700">
+                            <th className="text-left pb-2 font-medium w-8"></th>
+                            <th className="text-left pb-2 font-medium">From</th>
+                            <th className="text-left pb-2 font-medium w-8"></th>
+                            <th className="text-left pb-2 font-medium">To</th>
+                            <th className="text-right pb-2 font-medium">Length</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cables.map((cable, index) => {
+                            const src = pedalById(cable.sourcePedalId);
+                            const dst = pedalById(cable.destinationPedalId);
+                            const color = CABLE_COLORS[index % CABLE_COLORS.length];
+                            return (
+                              <tr key={cable.id} className="border-b border-slate-700/50 last:border-0">
+                                <td className="py-1.5">
+                                  <span
+                                    className="inline-block w-3 h-3 rounded-full"
+                                    style={{ backgroundColor: color }}
+                                  />
+                                </td>
+                                <td className="py-1.5 text-slate-200">{src?.name ?? "?"}</td>
+                                <td className="py-1.5 text-slate-500 text-center">&rarr;</td>
+                                <td className="py-1.5 text-slate-200">{dst?.name ?? "?"}</td>
+                                <td className="py-1.5 text-right text-slate-300 tabular-nums">
+                                  {cable.totalLength.toFixed(1)} cm
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           )}
@@ -479,10 +568,7 @@ const App: React.FC = () => {
           defaultPlacement={
             pedals.length === 0 ? 1 : Math.max(...pedals.map((p) => p.placement ?? 0)) + 1
           }
-          onCreated={(newPedal) => {
-            setPedals((prev) => [...prev, newPedal]);
-            setShowPedalForm(false);
-          }}
+          onCreated={handlePedalCreated}
           onClose={() => setShowPedalForm(false)}
         />
       )}
