@@ -274,6 +274,7 @@ const App: React.FC = () => {
         userId={currentUser.id}
         authToken={authToken}
         refreshKey={sidebarRefreshKey}
+        onAuthExpired={handleLogout}
       />
       <div className="flex-1 flex flex-col">
         <div className="h-16 border-b border-slate-800 flex items-center justify-between px-6 bg-slate-900/80 backdrop-blur">

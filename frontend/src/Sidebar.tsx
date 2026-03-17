@@ -11,9 +11,10 @@ type SidebarProps = {
   userId: string | null;
   authToken: string | null;
   refreshKey: number;
+  onAuthExpired?: () => void;
 };
 
-const Sidebar: React.FC<SidebarProps> = ({ activeBoardId, onBoardSelect, userId, authToken, refreshKey }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeBoardId, onBoardSelect, userId, authToken, refreshKey, onAuthExpired }) => {
   const [boards, setBoards] = useState<BoardSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +37,10 @@ const Sidebar: React.FC<SidebarProps> = ({ activeBoardId, onBoardSelect, userId,
         const response = await fetch(`/api/boards/user/${userId}`, {
           headers,
         });
+        if (response.status === 401 || response.status === 403) {
+          onAuthExpired?.();
+          return;
+        }
         if (!response.ok) {
           throw new Error("Failed to fetch boards");
         }
