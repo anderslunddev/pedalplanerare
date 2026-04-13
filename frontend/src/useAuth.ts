@@ -1,5 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { User } from "./types";
+import { authHeaders } from "./api";
 
 const TOKEN_KEY = "pedalboard_token";
 const USER_KEY = "pedalboard_user";
@@ -31,6 +32,29 @@ export function useAuth() {
     setAuthTokenState(null);
     setCurrentUserState(null);
   }, []);
+
+  useEffect(() => {
+    if (!authToken) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/users/me", { headers: authHeaders(authToken) });
+        if (cancelled) return;
+        if (res.ok) {
+          const user = (await res.json()) as User;
+          localStorage.setItem(USER_KEY, JSON.stringify(user));
+          setCurrentUserState(user);
+        } else if (res.status === 401) {
+          logout();
+        }
+      } catch {
+        // Keep cached user on transient errors
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [authToken, logout]);
 
   return { authToken, currentUser, login, logout };
 }

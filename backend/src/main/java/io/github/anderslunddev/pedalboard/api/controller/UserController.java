@@ -13,7 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -34,6 +38,18 @@ public class UserController {
 		User created = userService.register(request.username(), request.email(), request.password());
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(new UserResponse(created.id(), created.username(), created.email(), created.role()));
+	}
+
+	@GetMapping("/me")
+	public ResponseEntity<UserResponse> me() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !(authentication.getDetails() instanceof UUID userId)) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		return userService.findById(userId)
+				.map(u -> new UserResponse(u.id(), u.username(), u.email(), u.role()))
+				.map(ResponseEntity::ok)
+				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@PostMapping("/login")
