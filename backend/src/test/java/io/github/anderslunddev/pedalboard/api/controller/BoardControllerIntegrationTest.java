@@ -1,6 +1,6 @@
 package io.github.anderslunddev.pedalboard.api.controller;
 
-import io.github.anderslunddev.pedalboard.model.UserRepositoryAdapter;
+import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -34,10 +34,10 @@ class BoardControllerIntegrationTest {
 	private ObjectMapper objectMapper;
 
 	@Autowired
-	private UserRepositoryAdapter userRepositoryAdapter;
+	private UserPersistencePort userPersistence;
 
 	private UUID defaultUserId() {
-		return userRepositoryAdapter.findByUsername("anders")
+		return userPersistence.findByUsername("anders")
 				.orElseThrow(() -> new IllegalStateException("Seed user 'anders' not found")).id();
 	}
 

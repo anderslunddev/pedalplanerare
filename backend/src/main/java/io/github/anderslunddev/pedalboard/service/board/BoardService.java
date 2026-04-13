@@ -8,7 +8,7 @@ import io.github.anderslunddev.pedalboard.domain.pedal.PedalToCreate;
 import io.github.anderslunddev.pedalboard.domain.pedal.Placement;
 import io.github.anderslunddev.pedalboard.domain.user.UserId;
 import io.github.anderslunddev.pedalboard.domain.value.SurfaceArea;
-import io.github.anderslunddev.pedalboard.model.BoardRepositoryAdapter;
+import io.github.anderslunddev.pedalboard.port.BoardPersistencePort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,38 +18,38 @@ import java.util.Optional;
 @Service
 public class BoardService {
 
-	private final BoardRepositoryAdapter boardRepositoryAdapter;
+	private final BoardPersistencePort boardPersistence;
 
-	public BoardService(BoardRepositoryAdapter boardRepositoryAdapter) {
-		this.boardRepositoryAdapter = boardRepositoryAdapter;
+	public BoardService(BoardPersistencePort boardPersistence) {
+		this.boardPersistence = boardPersistence;
 	}
 
 	@PreAuthorize("@ownershipChecker.isCurrentUser(#userId)")
 	public Board createBoard(BoardName name, SurfaceArea surfaceArea, UserId userId) {
-		if (boardRepositoryAdapter.findByNameAndUserId(name, userId).isPresent()) {
+		if (boardPersistence.findByNameAndUserId(name, userId).isPresent()) {
 			throw new IllegalArgumentException("You already have a board named '" + name.value() + "'.");
 		}
-		return boardRepositoryAdapter.createBoard(name, surfaceArea, userId);
+		return boardPersistence.createBoard(name, surfaceArea, userId);
 	}
 
 	@PreAuthorize("@ownershipChecker.isCurrentUser(#userId)")
 	public java.util.List<Board> getBoardsForUser(UserId userId) {
-		return boardRepositoryAdapter.findByUserId(userId);
+		return boardPersistence.findByUserId(userId);
 	}
 
 	@PreAuthorize("@ownershipChecker.ownsBoard(#id)")
 	public Optional<Board> getBoard(BoardId id) {
-		return boardRepositoryAdapter.findById(id);
+		return boardPersistence.findById(id);
 	}
 
 	@Transactional
 	@PreAuthorize("@ownershipChecker.ownsBoard(#id)")
 	public void deleteBoard(BoardId id) {
-		Optional<Board> opt = boardRepositoryAdapter.findById(id);
+		Optional<Board> opt = boardPersistence.findById(id);
 		if (opt.isEmpty()) {
 			return;
 		}
-		boardRepositoryAdapter.deleteBoard(id);
+		boardPersistence.deleteBoard(id);
 	}
 
 	/**
@@ -62,8 +62,7 @@ public class BoardService {
 	@Transactional
 	@PreAuthorize("@ownershipChecker.ownsBoard(#boardId)")
 	public Optional<Pedal> addPedalToBoard(BoardId boardId, PedalToCreate pedalToCreate) {
-		// Ensure board exists
-		Optional<Board> boardOpt = boardRepositoryAdapter.findById(boardId);
+		Optional<Board> boardOpt = boardPersistence.findById(boardId);
 		if (boardOpt.isEmpty()) {
 			return Optional.empty();
 		}
@@ -72,11 +71,9 @@ public class BoardService {
 		if (board.wouldOverlapWithExisting(pedalToCreate)) {
 			throw new IllegalArgumentException("Pedal would overlap an existing pedal. Choose a different position.");
 		}
-		// Domain logic: decide final placement
 		Placement placement = board.resolvePlacementFor(pedalToCreate);
 
-		// Persist and return created pedal
-		return boardRepositoryAdapter.addPedalToBoard(boardId, pedalToCreate, placement);
+		return boardPersistence.addPedalToBoard(boardId, pedalToCreate, placement);
 	}
 
 }

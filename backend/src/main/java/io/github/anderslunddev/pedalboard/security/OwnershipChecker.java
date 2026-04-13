@@ -4,8 +4,8 @@ import io.github.anderslunddev.pedalboard.domain.board.Board;
 import io.github.anderslunddev.pedalboard.domain.board.BoardId;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
 import io.github.anderslunddev.pedalboard.domain.user.UserId;
-import io.github.anderslunddev.pedalboard.model.BoardRepositoryAdapter;
-import io.github.anderslunddev.pedalboard.model.PedalRepositoryAdapter;
+import io.github.anderslunddev.pedalboard.port.BoardPersistencePort;
+import io.github.anderslunddev.pedalboard.port.PedalPersistencePort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -16,13 +16,12 @@ import java.util.UUID;
 @Component
 public class OwnershipChecker {
 
-	private final BoardRepositoryAdapter boardRepositoryAdapter;
-	private final PedalRepositoryAdapter pedalRepositoryAdapter;
+	private final BoardPersistencePort boardPersistence;
+	private final PedalPersistencePort pedalPersistence;
 
-	public OwnershipChecker(BoardRepositoryAdapter boardRepositoryAdapter,
-			PedalRepositoryAdapter pedalRepositoryAdapter) {
-		this.boardRepositoryAdapter = boardRepositoryAdapter;
-		this.pedalRepositoryAdapter = pedalRepositoryAdapter;
+	public OwnershipChecker(BoardPersistencePort boardPersistence, PedalPersistencePort pedalPersistence) {
+		this.boardPersistence = boardPersistence;
+		this.pedalPersistence = pedalPersistence;
 	}
 
 	public boolean isCurrentUser(UserId ownerId) {
@@ -30,7 +29,7 @@ public class OwnershipChecker {
 	}
 
 	public boolean ownsBoard(BoardId boardId) {
-		Optional<Board> optBoard = boardRepositoryAdapter.findById(boardId);
+		Optional<Board> optBoard = boardPersistence.findById(boardId);
 		if (optBoard.isEmpty()) {
 			return true;
 		}
@@ -44,7 +43,7 @@ public class OwnershipChecker {
 	 * due to OpenEntityManagerInView and Hibernate's orphanRemoval.
 	 */
 	public boolean ownsPedalById(UUID pedalId) {
-		Optional<UUID> ownerIdOpt = pedalRepositoryAdapter.findBoardOwnerId(new PedalId(pedalId));
+		Optional<UUID> ownerIdOpt = pedalPersistence.findBoardOwnerId(new PedalId(pedalId));
 		if (ownerIdOpt.isEmpty()) {
 			return true;
 		}

@@ -2,7 +2,7 @@ package io.github.anderslunddev.pedalboard.service.user;
 
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
-import io.github.anderslunddev.pedalboard.model.UserRepositoryAdapter;
+import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,11 +14,11 @@ import java.util.UUID;
 @Service
 public class UserService {
 
-	private final UserRepositoryAdapter userRepositoryAdapter;
+	private final UserPersistencePort userPersistence;
 	private final PasswordEncoder passwordEncoder;
 
-	public UserService(UserRepositoryAdapter userRepositoryAdapter, PasswordEncoder passwordEncoder) {
-		this.userRepositoryAdapter = userRepositoryAdapter;
+	public UserService(UserPersistencePort userPersistence, PasswordEncoder passwordEncoder) {
+		this.userPersistence = userPersistence;
 		this.passwordEncoder = passwordEncoder;
 	}
 
@@ -29,51 +29,51 @@ public class UserService {
 
 	@Transactional
 	public User register(String username, String email, String password, Role role) {
-		if (userRepositoryAdapter.existsByUsername(username)) {
+		if (userPersistence.existsByUsername(username)) {
 			throw new IllegalArgumentException("Username is already taken");
 		}
-		if (userRepositoryAdapter.existsByEmail(email)) {
+		if (userPersistence.existsByEmail(email)) {
 			throw new IllegalArgumentException("Email is already in use");
 		}
 		String hashed = passwordEncoder.encode(password);
-		return userRepositoryAdapter.createUser(username, email, hashed, role);
+		return userPersistence.createUser(username, email, hashed, role);
 	}
 
 	public Optional<User> findByUsername(String username) {
-		return userRepositoryAdapter.findByUsername(username);
+		return userPersistence.findByUsername(username);
 	}
 
 	public Optional<User> findById(UUID id) {
-		return userRepositoryAdapter.findById(id);
+		return userPersistence.findById(id);
 	}
 
 	public List<User> findAll() {
-		return userRepositoryAdapter.findAll();
+		return userPersistence.findAll();
 	}
 
 	@Transactional
 	public User updateRole(UUID userId, Role role) {
-		return userRepositoryAdapter.updateRole(userId, role);
+		return userPersistence.updateRole(userId, role);
 	}
 
 	@Transactional
 	public User resetPassword(UUID userId, String newPassword) {
 		String hashed = passwordEncoder.encode(newPassword);
-		return userRepositoryAdapter.updatePassword(userId, hashed);
+		return userPersistence.updatePassword(userId, hashed);
 	}
 
 	@Transactional
 	public void deleteUser(UUID userId) {
-		userRepositoryAdapter.deleteById(userId);
+		userPersistence.deleteById(userId);
 	}
 
 	@Transactional
 	public User promoteToAdmin(String username) {
-		User user = userRepositoryAdapter.findByUsername(username)
+		User user = userPersistence.findByUsername(username)
 				.orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 		if (user.isAdmin()) {
 			return user;
 		}
-		return userRepositoryAdapter.updateRole(user.id(), Role.ADMIN);
+		return userPersistence.updateRole(user.id(), Role.ADMIN);
 	}
 }

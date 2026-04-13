@@ -29,8 +29,27 @@ class ArchitectureTest {
 	static final ArchRule domain_should_not_depend_on_infrastructure =
 		noClasses().that().resideInAPackage("..domain..")
 			.should().dependOnClassesThat().resideInAnyPackage(
-				"..model..", "..api..", "..service..", "..security..", "..config..")
-			.because("Domain must remain independent of infrastructure concerns");
+				"..model..", "..api..", "..service..", "..security..", "..config..", "..port..")
+			.because("Domain must remain independent of application and infrastructure concerns");
+
+	@ArchTest
+	static final ArchRule port_must_not_depend_on_implementation_layers =
+		noClasses().that().resideInAPackage("..port..")
+			.should().dependOnClassesThat().resideInAnyPackage(
+					"..model..", "..api..", "..service..", "..security..", "..config..")
+			.because("Outgoing ports only declare domain types; implementations live in persistence");
+
+	@ArchTest
+	static final ArchRule services_should_not_depend_on_persistence_impl =
+		noClasses().that().resideInAPackage("..service..")
+			.should().dependOnClassesThat().resideInAPackage("..model..")
+			.because("Services depend on port interfaces, not JPA adapters or entities");
+
+	@ArchTest
+	static final ArchRule security_should_not_depend_on_persistence_impl =
+		noClasses().that().resideInAPackage("..security..")
+			.should().dependOnClassesThat().resideInAPackage("..model..")
+			.because("Security uses port interfaces, not persistence implementation types");
 
 	@ArchTest
 	static final ArchRule services_should_not_depend_on_api =
@@ -43,6 +62,7 @@ class ArchitectureTest {
 		.consideringAllDependencies()
 		.layer("API").definedBy("..api..")
 		.layer("Service").definedBy("..service..")
+		.layer("Port").definedBy("..port..")
 		.layer("Persistence").definedBy("..model..")
 		.layer("Domain").definedBy("..domain..")
 		.layer("Security").definedBy("..security..")
@@ -50,7 +70,8 @@ class ArchitectureTest {
 
 		.whereLayer("API").mayNotBeAccessedByAnyLayer()
 		.whereLayer("Service").mayOnlyBeAccessedByLayers("API")
-		.whereLayer("Persistence").mayOnlyBeAccessedByLayers("Service", "Security")
+		.whereLayer("Port").mayOnlyBeAccessedByLayers("Service", "Security", "Persistence")
+		.whereLayer("Persistence").mayOnlyBeAccessedByLayers("Persistence")
 		.whereLayer("Security").mayOnlyBeAccessedByLayers("API")
 		.whereLayer("Config").mayNotBeAccessedByAnyLayer()
 

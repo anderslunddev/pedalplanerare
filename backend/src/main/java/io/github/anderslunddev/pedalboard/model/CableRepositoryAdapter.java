@@ -3,13 +3,15 @@ package io.github.anderslunddev.pedalboard.model;
 import io.github.anderslunddev.pedalboard.domain.board.BoardId;
 import io.github.anderslunddev.pedalboard.domain.cable.Cable;
 import io.github.anderslunddev.pedalboard.domain.cable.Length;
+import io.github.anderslunddev.pedalboard.domain.cable.PathPoint;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
+import io.github.anderslunddev.pedalboard.port.CablePersistencePort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
-public class CableRepositoryAdapter {
+public class CableRepositoryAdapter implements CablePersistencePort {
 
 	private final CableRepository cableRepository;
 	private final CableModelConverter converter;
@@ -20,7 +22,7 @@ public class CableRepositoryAdapter {
 	}
 
 	public Cable saveCable(BoardId boardId, PedalId sourcePedalId, PedalId destinationPedalId,
-			List<io.github.anderslunddev.pedalboard.domain.cable.PathPoint> pathPoints, Length totalLength) {
+			List<PathPoint> pathPoints, Length totalLength) {
 		CableModel toSave = converter.toEntity(boardId, sourcePedalId, destinationPedalId, pathPoints, totalLength);
 		CableModel saved = cableRepository.save(toSave);
 		return converter.toDomain(saved);

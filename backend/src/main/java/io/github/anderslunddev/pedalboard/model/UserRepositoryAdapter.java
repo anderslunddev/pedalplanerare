@@ -2,6 +2,7 @@ package io.github.anderslunddev.pedalboard.model;
 
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class UserRepositoryAdapter {
+public class UserRepositoryAdapter implements UserPersistencePort {
 
 	private final UserRepository userRepository;
 	private final UserModelConverter converter;

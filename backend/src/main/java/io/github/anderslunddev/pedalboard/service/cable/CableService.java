@@ -6,9 +6,9 @@ import io.github.anderslunddev.pedalboard.domain.cable.Cable;
 import io.github.anderslunddev.pedalboard.domain.cable.Length;
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
-import io.github.anderslunddev.pedalboard.model.BoardRepositoryAdapter;
-import io.github.anderslunddev.pedalboard.model.CableRepositoryAdapter;
-import io.github.anderslunddev.pedalboard.model.PedalRepositoryAdapter;
+import io.github.anderslunddev.pedalboard.port.BoardPersistencePort;
+import io.github.anderslunddev.pedalboard.port.CablePersistencePort;
+import io.github.anderslunddev.pedalboard.port.PedalPersistencePort;
 import io.github.anderslunddev.pedalboard.service.cable.calculation.RoutingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -22,29 +22,29 @@ import java.util.Optional;
 @Service
 public class CableService {
 
-	private final CableRepositoryAdapter cableRepositoryAdapter;
-	private final BoardRepositoryAdapter boardRepositoryAdapter;
-	private final PedalRepositoryAdapter pedalRepositoryAdapter;
+	private final CablePersistencePort cablePersistence;
+	private final BoardPersistencePort boardPersistence;
+	private final PedalPersistencePort pedalPersistence;
 	private final RoutingService routingService;
 
-	public CableService(CableRepositoryAdapter cableRepositoryAdapter, BoardRepositoryAdapter boardRepositoryAdapter,
-			PedalRepositoryAdapter pedalRepositoryAdapter, RoutingService routingService) {
-		this.cableRepositoryAdapter = cableRepositoryAdapter;
-		this.boardRepositoryAdapter = boardRepositoryAdapter;
-		this.pedalRepositoryAdapter = pedalRepositoryAdapter;
+	public CableService(CablePersistencePort cablePersistence, BoardPersistencePort boardPersistence,
+			PedalPersistencePort pedalPersistence, RoutingService routingService) {
+		this.cablePersistence = cablePersistence;
+		this.boardPersistence = boardPersistence;
+		this.pedalPersistence = pedalPersistence;
 		this.routingService = routingService;
 	}
 
 	@PreAuthorize("@ownershipChecker.ownsBoard(#boardId)")
 	public Optional<Cable> createCable(BoardId boardId, PedalId sourcePedalId, PedalId destinationPedalId) {
-		Optional<Board> optBoard = boardRepositoryAdapter.findById(boardId);
+		Optional<Board> optBoard = boardPersistence.findById(boardId);
 		if (optBoard.isEmpty()) {
 			return Optional.empty();
 		}
 		Board domainBoard = optBoard.get();
 
-		Optional<Pedal> optSource = pedalRepositoryAdapter.findById(sourcePedalId);
-		Optional<Pedal> optDestination = pedalRepositoryAdapter.findById(destinationPedalId);
+		Optional<Pedal> optSource = pedalPersistence.findById(sourcePedalId);
+		Optional<Pedal> optDestination = pedalPersistence.findById(destinationPedalId);
 		if (optSource.isEmpty() || optDestination.isEmpty()) {
 			return Optional.empty();
 		}
@@ -55,7 +55,7 @@ public class CableService {
 	@Transactional
 	@PreAuthorize("@ownershipChecker.ownsBoard(#boardId)")
 	public Optional<List<Cable>> generateSequence(BoardId boardId) {
-		Optional<Board> optBoard = boardRepositoryAdapter.findById(boardId);
+		Optional<Board> optBoard = boardPersistence.findById(boardId);
 		if (optBoard.isEmpty()) {
 			return Optional.empty();
 		}
@@ -65,16 +65,15 @@ public class CableService {
 				.sorted((a, b) -> Integer.compare(a.placement().value(), b.placement().value())).toList();
 
 		if (pedals.isEmpty()) {
-			cableRepositoryAdapter.deleteByBoardId(boardId);
+			cablePersistence.deleteByBoardId(boardId);
 			return Optional.of(List.of());
 		}
 		if (pedals.size() == 1) {
-			cableRepositoryAdapter.deleteByBoardId(boardId);
+			cablePersistence.deleteByBoardId(boardId);
 			return Optional.of(List.of());
 		}
 
-		// Connect pedals in placement order (each to the next). Gaps are allowed (e.g. 1 and 3 after deleting 2).
-		cableRepositoryAdapter.deleteByBoardId(boardId);
+		cablePersistence.deleteByBoardId(boardId);
 
 		List<Cable> result = new ArrayList<>();
 
@@ -91,34 +90,22 @@ public class CableService {
 		RoutingService.RoutingResult routing = routingService.route(domainBoard, source, destination, pedals);
 
 		Length routingLength = new Length(routing.totalLength());
-		Cable saved = cableRepositoryAdapter.saveCable(domainBoard.id(), source.id(), destination.id(),
-				routing.pathPoints(), routingLength);
-		return saved;
+		return cablePersistence.saveCable(domainBoard.id(), source.id(), destination.id(), routing.pathPoints(),
+				routingLength);
 	}
 
-	/**
-	 * Deletes all cables that reference the given pedal (source or destination).
-	 * <p>
-	 * Uses {@code REQUIRES_NEW} so the cable deletes (including their
-	 * {@code @ElementCollection} path points) are flushed and committed in an
-	 * independent transaction before the caller deletes the pedal entity itself.
-	 * Without this, Hibernate's persistence context can hold stale references to
-	 * the cable's element-collection rows, causing
-	 * {@code StaleObjectStateException} ("Row was updated or deleted by another
-	 * transaction") when the outer transaction commits.
-	 */
 	@Transactional(propagation = Propagation.REQUIRES_NEW)
 	public void deleteCablesForPedal(PedalId pedalId) {
-		cableRepositoryAdapter.deleteBySourcePedalIdOrDestinationPedalId(pedalId);
-		cableRepositoryAdapter.flush();
+		cablePersistence.deleteBySourcePedalIdOrDestinationPedalId(pedalId);
+		cablePersistence.flush();
 	}
 
 	@PreAuthorize("@ownershipChecker.ownsBoard(#boardId)")
 	public List<Cable> listCables(BoardId boardId) {
-		Optional<Board> optBoard = boardRepositoryAdapter.findById(boardId);
+		Optional<Board> optBoard = boardPersistence.findById(boardId);
 		if (optBoard.isEmpty()) {
 			return List.of();
 		}
-		return cableRepositoryAdapter.findByBoardId(boardId);
+		return cablePersistence.findByBoardId(boardId);
 	}
 }

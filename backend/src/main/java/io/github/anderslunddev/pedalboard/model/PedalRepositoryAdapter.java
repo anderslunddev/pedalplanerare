@@ -3,13 +3,14 @@ package io.github.anderslunddev.pedalboard.model;
 import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
 import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
+import io.github.anderslunddev.pedalboard.port.PedalPersistencePort;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class PedalRepositoryAdapter {
+public class PedalRepositoryAdapter implements PedalPersistencePort {
 
 	private final PedalRepository pedalRepository;
 	private final PedalModelConverter converter;
