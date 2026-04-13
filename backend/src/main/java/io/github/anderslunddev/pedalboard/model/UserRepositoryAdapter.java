@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.model;
 
+import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
@@ -20,7 +21,7 @@ public class UserRepositoryAdapter implements UserPersistencePort {
 		this.converter = converter;
 	}
 
-	public User createUser(String username, String email, String password, Role role) {
+	public User createUser(String username, Email email, String password, Role role) {
 		UserModel toSave = converter.toEntity(username, email, password, role);
 		UserModel saved = userRepository.save(toSave);
 		return converter.toDomain(saved);
@@ -42,8 +43,8 @@ public class UserRepositoryAdapter implements UserPersistencePort {
 		return userRepository.existsByUsername(username);
 	}
 
-	public boolean existsByEmail(String email) {
-		return userRepository.existsByEmail(email);
+	public boolean existsByEmail(Email email) {
+		return userRepository.existsByEmail(email.value());
 	}
 
 	public User updateRole(UUID userId, Role role) {

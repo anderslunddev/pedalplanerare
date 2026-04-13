@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.model;
 
+import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import io.github.anderslunddev.pedalboard.domain.user.UserMother;
@@ -30,7 +31,7 @@ class UserRepositoryAdapterTest {
 	@Test
 	void createUser_shouldConvertSaveAndReturnDomainUser() {
 		String username = "alice";
-		String email = "alice@example.com";
+		Email email = Email.parse("alice@example.com");
 		String password = "secret";
 		Role role = Role.USER;
 
@@ -100,19 +101,19 @@ class UserRepositoryAdapterTest {
 
 	@Test
 	void existsByEmail_shouldReturnTrueWhenEmailExists() {
-		String email = "found@example.com";
-		when(userRepository.existsByEmail(email)).thenReturn(true);
+		Email email = Email.parse("found@example.com");
+		when(userRepository.existsByEmail(email.value())).thenReturn(true);
 
 		assertTrue(adapter.existsByEmail(email));
-		verify(userRepository).existsByEmail(email);
+		verify(userRepository).existsByEmail(email.value());
 	}
 
 	@Test
 	void existsByEmail_shouldReturnFalseWhenEmailMissing() {
-		String email = "none@example.com";
-		when(userRepository.existsByEmail(email)).thenReturn(false);
+		Email email = Email.parse("none@example.com");
+		when(userRepository.existsByEmail(email.value())).thenReturn(false);
 
 		assertFalse(adapter.existsByEmail(email));
-		verify(userRepository).existsByEmail(email);
+		verify(userRepository).existsByEmail(email.value());
 	}
 }

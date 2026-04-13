@@ -6,7 +6,6 @@ import io.github.anderslunddev.pedalboard.domain.user.User;
 import io.github.anderslunddev.pedalboard.security.JwtUtil;
 import io.github.anderslunddev.pedalboard.service.user.UserService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
@@ -17,6 +16,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -35,23 +35,21 @@ public class UserController {
 
 	@GetMapping("/me")
 	public ResponseEntity<UserResponse> me() {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication == null || !(authentication.getDetails() instanceof UUID userId)) {
+		Optional<UUID> userId = currentUserId();
+		if (userId.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
-		return userService.findById(userId)
-				.map(u -> new UserResponse(u.id(), u.username(), u.email(), u.role()))
-				.map(ResponseEntity::ok)
+		return userService.findById(userId.get()).map(UserController::toResponse).map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
 	@PutMapping("/me/password")
 	public ResponseEntity<Void> changeOwnPassword(@Valid @RequestBody ChangePasswordRequest request) {
-		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-		if (authentication == null || !(authentication.getDetails() instanceof UUID userId)) {
+		Optional<UUID> userId = currentUserId();
+		if (userId.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
-		userService.changeOwnPassword(userId, request.currentPassword(), request.newPassword());
+		userService.changeOwnPassword(userId.get(), request.currentPassword(), request.newPassword());
 		return ResponseEntity.noContent().build();
 	}
 
@@ -65,11 +63,22 @@ public class UserController {
 
 			String token = jwtUtil.generateToken(AuthPrincipal.fromUser(user));
 
-			return ResponseEntity
-					.ok(new LoginResponse(token, new UserResponse(user.id(), user.username(), user.email(), user.role())));
+			return ResponseEntity.ok(new LoginResponse(token, toResponse(user)));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
+	}
+
+	private static Optional<UUID> currentUserId() {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !(authentication.getDetails() instanceof UUID id)) {
+			return Optional.empty();
+		}
+		return Optional.of(id);
+	}
+
+	private static UserResponse toResponse(User user) {
+		return new UserResponse(user.id(), user.username(), user.email().value(), user.role());
 	}
 
 	public record ChangePasswordRequest(

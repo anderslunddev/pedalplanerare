@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.service.user;
 
+import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
@@ -23,20 +24,25 @@ public class UserService {
 	}
 
 	@Transactional
-	public User register(String username, String email, String password) {
-		return register(username, email, password, Role.USER);
+	public User register(String username, String emailRaw, String password) {
+		return register(username, emailRaw, password, Role.USER);
 	}
 
 	@Transactional
-	public User register(String username, String email, String password, Role role) {
+	public User register(String username, String emailRaw, String password, Role role) {
+		Email email = Email.parse(emailRaw);
+		assertUsernameAndEmailAvailable(username, email);
+		String hashed = passwordEncoder.encode(password);
+		return userPersistence.createUser(username, email, hashed, role);
+	}
+
+	private void assertUsernameAndEmailAvailable(String username, Email email) {
 		if (userPersistence.existsByUsername(username)) {
 			throw new IllegalArgumentException("Username is already taken");
 		}
 		if (userPersistence.existsByEmail(email)) {
 			throw new IllegalArgumentException("Email is already in use");
 		}
-		String hashed = passwordEncoder.encode(password);
-		return userPersistence.createUser(username, email, hashed, role);
 	}
 
 	public Optional<User> findByUsername(String username) {

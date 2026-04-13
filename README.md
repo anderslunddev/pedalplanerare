@@ -60,7 +60,7 @@ Open **http://localhost:5173** and log in. There is no public self-registration:
 
 ## Authentication
 
-- **Users:** Created by an **ADMIN** via `POST /api/admin/users` (same as the Admin UI), or inserted manually in the database with a **BCrypt** password hash (same algorithm/strength as Spring’s `BCryptPasswordEncoder`).
+- **Users:** Created by an **ADMIN** via `POST /api/admin/users` (same as the Admin UI), or inserted manually in the database with a **BCrypt** password hash (same algorithm/strength as Spring’s `BCryptPasswordEncoder`). Emails are validated and stored **normalized** (trimmed, lower-case) in the domain type `Email`.
 - **Login:** `POST /api/users/login` with `username` and `password`. Returns a JWT and user object.
 - **Change password:** `PUT /api/users/me/password` with JSON `{ "currentPassword", "newPassword" }` (min 8 chars for the new password) and a valid Bearer token.
 - **API calls:** Send `Authorization: Bearer <token>` for protected endpoints (boards, pedals, cables).

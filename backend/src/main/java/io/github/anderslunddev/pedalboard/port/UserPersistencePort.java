@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.port;
 
+import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 
@@ -12,7 +13,7 @@ import java.util.UUID;
  */
 public interface UserPersistencePort {
 
-	User createUser(String username, String email, String password, Role role);
+	User createUser(String username, Email email, String password, Role role);
 
 	Optional<User> findByUsername(String username);
 
@@ -22,7 +23,7 @@ public interface UserPersistencePort {
 
 	boolean existsByUsername(String username);
 
-	boolean existsByEmail(String email);
+	boolean existsByEmail(Email email);
 
 	User updateRole(UUID userId, Role role);
 

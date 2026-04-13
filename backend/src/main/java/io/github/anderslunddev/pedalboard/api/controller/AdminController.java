@@ -27,26 +27,22 @@ public class AdminController {
 
 	@GetMapping
 	public List<AdminUserResponse> listUsers() {
-		return userService.findAll().stream()
-				.map(user -> new AdminUserResponse(user.id(), user.username(), user.email(), user.role())).toList();
+		return userService.findAll().stream().map(AdminController::toResponse).toList();
 	}
 
 	@PostMapping
 	public ResponseEntity<AdminUserResponse> createUser(@Valid @RequestBody CreateUserRequest request) {
 		User created = userService.register(request.username(), request.email(), request.password(), request.role());
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(new AdminUserResponse(created.id(), created.username(), created.email(), created.role()));
+		return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(created));
 	}
 
 	@PutMapping("/{id}/role")
 	public AdminUserResponse updateRole(@PathVariable UUID id, @Valid @RequestBody UpdateRoleRequest request) {
-		User updated = userService.updateRole(id, request.role());
-		return new AdminUserResponse(updated.id(), updated.username(), updated.email(), updated.role());
+		return toResponse(userService.updateRole(id, request.role()));
 	}
 
 	@PutMapping("/{id}/password")
-	public ResponseEntity<Void> resetPassword(@PathVariable UUID id,
-			@Valid @RequestBody ResetPasswordRequest request) {
+	public ResponseEntity<Void> resetPassword(@PathVariable UUID id, @Valid @RequestBody ResetPasswordRequest request) {
 		userService.resetPassword(id, request.password());
 		return ResponseEntity.noContent().build();
 	}
@@ -55,6 +51,10 @@ public class AdminController {
 	public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
 		userService.deleteUser(id);
 		return ResponseEntity.noContent().build();
+	}
+
+	private static AdminUserResponse toResponse(User user) {
+		return new AdminUserResponse(user.id(), user.username(), user.email().value(), user.role());
 	}
 
 	public record AdminUserResponse(UUID id, String username, String email, Role role) {
