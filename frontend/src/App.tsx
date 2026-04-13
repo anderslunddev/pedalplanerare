@@ -3,6 +3,7 @@ import Sidebar from "./Sidebar";
 import LoginPage from "./components/LoginPage";
 import CreateBoardDialog from "./components/CreateBoardDialog";
 import AddPedalDialog from "./components/AddPedalDialog";
+import AdminPanel from "./components/AdminPanel";
 import { useAuth } from "./useAuth";
 import { authHeaders } from "./api";
 import { isOverlapping, getContrastTextColor } from "./utils";
@@ -74,6 +75,8 @@ const App: React.FC = () => {
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0);
 
   const [confirmingDeleteBoard, setConfirmingDeleteBoard] = useState(false);
+
+  const [showAdmin, setShowAdmin] = useState(false);
 
   useEffect(() => {
     setConfirmingDeleteBoard(false);
@@ -259,6 +262,16 @@ const App: React.FC = () => {
     return <LoginPage onLogin={login} />;
   }
 
+  if (showAdmin && currentUser.role === "ADMIN") {
+    return (
+      <AdminPanel
+        authToken={authToken}
+        currentUserId={currentUser.id}
+        onBack={() => setShowAdmin(false)}
+      />
+    );
+  }
+
   const rectWidth = board ? board.width * PIXELS_PER_UNIT : 0;
   const rectHeight = board ? board.height * PIXELS_PER_UNIT : 0;
 
@@ -283,6 +296,14 @@ const App: React.FC = () => {
             <span className="text-sm text-slate-300">
               Logged in as <span className="font-medium">{currentUser.username}</span>
             </span>
+            {currentUser.role === "ADMIN" && (
+              <button
+                onClick={() => setShowAdmin(true)}
+                className="text-sm text-amber-300 hover:text-amber-200"
+              >
+                Admin
+              </button>
+            )}
             <button onClick={handleLogout} className="text-sm text-slate-300 hover:text-red-300">
               Logout
             </button>

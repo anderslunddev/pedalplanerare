@@ -35,6 +35,7 @@ export type User = {
   id: string;
   username: string;
   email: string;
+  role: string;
 };
 
 export const PIXELS_PER_UNIT = 8;

@@ -11,21 +11,25 @@ public final class UserMother {
 	}
 
 	public static User simple() {
-		return new User(UUID.randomUUID(), "testuser", "test@example.com", "hashedpassword");
+		return new User(UUID.randomUUID(), "testuser", "test@example.com", "hashedpassword", User.ROLE_USER);
+	}
+
+	public static User admin() {
+		return new User(UUID.randomUUID(), "admin", "admin@example.com", "hashedpassword", User.ROLE_ADMIN);
 	}
 
 	public static User withUsername(String username) {
 		User base = simple();
-		return new User(base.id(), username, base.email(), base.password());
+		return new User(base.id(), username, base.email(), base.password(), base.role());
 	}
 
 	public static User withEmail(String email) {
 		User base = simple();
-		return new User(base.id(), base.username(), email, base.password());
+		return new User(base.id(), base.username(), email, base.password(), base.role());
 	}
 
 	public static User withId(UUID id) {
 		User base = simple();
-		return new User(id, base.username(), base.email(), base.password());
+		return new User(id, base.username(), base.email(), base.password(), base.role());
 	}
 }

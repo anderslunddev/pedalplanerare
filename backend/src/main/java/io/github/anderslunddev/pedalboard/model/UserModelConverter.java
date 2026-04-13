@@ -13,14 +13,13 @@ class UserModelConverter {
 
 	User toDomain(UserModel entity) {
 		Objects.requireNonNull(entity, "UserModel must not be null");
-		return new User(entity.getId(), entity.getUsername(), entity.getEmail(), entity.getPassword());
+		return new User(entity.getId(), entity.getUsername(), entity.getEmail(), entity.getPassword(), entity.getRole());
 	}
 
-	UserModel toEntity(String username, String email, String password) {
+	UserModel toEntity(String username, String email, String password, String role) {
 		Objects.requireNonNull(username, "username must not be null");
 		Objects.requireNonNull(email, "email must not be null");
 		Objects.requireNonNull(password, "password must not be null");
-		return new UserModel(username, email, password);
+		return new UserModel(username, email, password, role);
 	}
 }
-

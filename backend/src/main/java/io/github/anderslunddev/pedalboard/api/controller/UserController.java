@@ -31,7 +31,7 @@ public class UserController {
 	public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
 		User created = userService.register(request.username(), request.email(), request.password());
 		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(new UserResponse(created.id(), created.username(), created.email()));
+				.body(new UserResponse(created.id(), created.username(), created.email(), created.role()));
 	}
 
 	@PostMapping("/login")
@@ -45,7 +45,7 @@ public class UserController {
 			String token = jwtUtil.generateToken(user);
 
 			return ResponseEntity
-					.ok(new LoginResponse(token, new UserResponse(user.id(), user.username(), user.email())));
+					.ok(new LoginResponse(token, new UserResponse(user.id(), user.username(), user.email(), user.role())));
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
@@ -60,7 +60,7 @@ public class UserController {
 			@NotBlank(message = "Password must not be blank") String password) {
 	}
 
-	public record UserResponse(java.util.UUID id, String username, String email) {
+	public record UserResponse(java.util.UUID id, String username, String email, String role) {
 	}
 
 	public record LoginResponse(String token, UserResponse user) {

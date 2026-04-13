@@ -31,7 +31,8 @@ public class JwtUtil {
 		Instant now = Instant.now();
 		return Jwts.builder().setSubject(user.username()).setIssuedAt(Date.from(now))
 				.setExpiration(Date.from(now.plusSeconds(expirationSeconds)))
-				.addClaims(Map.of("userId", user.id().toString())).signWith(key, SignatureAlgorithm.HS256).compact();
+				.addClaims(Map.of("userId", user.id().toString(), "role", user.role()))
+				.signWith(key, SignatureAlgorithm.HS256).compact();
 	}
 
 	public Jws<Claims> validate(String token) throws JwtException {

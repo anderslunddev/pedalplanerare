@@ -31,9 +31,10 @@ class UserRepositoryAdapterTest {
 		String username = "alice";
 		String email = "alice@example.com";
 		String password = "secret";
+		String role = "USER";
 
 		UserModel toSave = new UserModel();
-		when(converter.toEntity(username, email, password)).thenReturn(toSave);
+		when(converter.toEntity(username, email, password, role)).thenReturn(toSave);
 
 		UserModel savedModel = new UserModel();
 		when(userRepository.save(toSave)).thenReturn(savedModel);
@@ -41,10 +42,10 @@ class UserRepositoryAdapterTest {
 		User expectedUser = UserMother.withUsername(username);
 		when(converter.toDomain(savedModel)).thenReturn(expectedUser);
 
-		User result = adapter.createUser(username, email, password);
+		User result = adapter.createUser(username, email, password, role);
 
 		assertSame(expectedUser, result);
-		verify(converter).toEntity(username, email, password);
+		verify(converter).toEntity(username, email, password, role);
 		verify(userRepository).save(toSave);
 		verify(converter).toDomain(savedModel);
 	}

@@ -3,7 +3,9 @@ package io.github.anderslunddev.pedalboard.model;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class UserRepositoryAdapter {
@@ -16,8 +18,8 @@ public class UserRepositoryAdapter {
 		this.converter = converter;
 	}
 
-	public User createUser(String username, String email, String password) {
-		UserModel toSave = converter.toEntity(username, email, password);
+	public User createUser(String username, String email, String password, String role) {
+		UserModel toSave = converter.toEntity(username, email, password, role);
 		UserModel saved = userRepository.save(toSave);
 		return converter.toDomain(saved);
 	}
@@ -26,11 +28,40 @@ public class UserRepositoryAdapter {
 		return userRepository.findByUsername(username).map(converter::toDomain);
 	}
 
+	public Optional<User> findById(UUID id) {
+		return userRepository.findById(id).map(converter::toDomain);
+	}
+
+	public List<User> findAll() {
+		return userRepository.findAll().stream().map(converter::toDomain).toList();
+	}
+
 	public boolean existsByUsername(String username) {
 		return userRepository.existsByUsername(username);
 	}
 
 	public boolean existsByEmail(String email) {
 		return userRepository.existsByEmail(email);
+	}
+
+	public User updateRole(UUID userId, String role) {
+		UserModel model = userRepository.findById(userId)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+		model.setRole(role);
+		return converter.toDomain(userRepository.save(model));
+	}
+
+	public User updatePassword(UUID userId, String hashedPassword) {
+		UserModel model = userRepository.findById(userId)
+				.orElseThrow(() -> new IllegalArgumentException("User not found"));
+		model.setPassword(hashedPassword);
+		return converter.toDomain(userRepository.save(model));
+	}
+
+	public void deleteById(UUID userId) {
+		if (!userRepository.existsById(userId)) {
+			throw new IllegalArgumentException("User not found");
+		}
+		userRepository.deleteById(userId);
 	}
 }
