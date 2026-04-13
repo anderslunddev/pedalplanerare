@@ -3,6 +3,7 @@ package io.github.anderslunddev.pedalboard.api.controller;
 import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -36,13 +37,33 @@ class BoardControllerIntegrationTest {
 	@Autowired
 	private UserPersistencePort userPersistence;
 
+	private String defaultUsername;
+
+	private static final String DEFAULT_PASSWORD = "password123";
+
+	@BeforeEach
+	void registerIntegrationTestUser() throws Exception {
+		defaultUsername = "itest_" + System.nanoTime();
+		String email = defaultUsername + "@example.com";
+		String registerPayload = """
+				{
+				  "username": "%s",
+				  "email": "%s",
+				  "password": "%s"
+				}
+				""".formatted(defaultUsername, email, DEFAULT_PASSWORD);
+		mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(registerPayload))
+				.andExpect(status().isCreated());
+	}
+
 	private UUID defaultUserId() {
-		return userPersistence.findByUsername("anders")
-				.orElseThrow(() -> new IllegalStateException("Seed user 'anders' not found")).id();
+		return userPersistence.findByUsername(defaultUsername)
+				.orElseThrow(() -> new IllegalStateException("Integration test user not found: " + defaultUsername))
+				.id();
 	}
 
 	private String authHeader() throws Exception {
-		return authHeader("anders", "pass");
+		return authHeader(defaultUsername, DEFAULT_PASSWORD);
 	}
 
 	private String authHeader(String username, String password) throws Exception {

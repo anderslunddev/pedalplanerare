@@ -1,6 +1,5 @@
 package io.github.anderslunddev.pedalboard;
 
-import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +9,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Profile;
 
 @SpringBootApplication
 @EnableCaching
@@ -20,15 +18,6 @@ public class PedalboardBackendApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(PedalboardBackendApplication.class, args);
-	}
-
-	@Bean
-	@Profile("!prod")
-	CommandLineRunner seedDefaultUsers(UserService userService) {
-		return args -> {
-			tryRegister(userService, "anders", "anders@example.com", "pass", Role.ADMIN);
-			tryRegister(userService, "panders", "panders@example.com", "word", Role.USER);
-		};
 	}
 
 	/**
@@ -49,14 +38,5 @@ public class PedalboardBackendApplication {
 				log.warn("Could not promote '{}' to admin: {}", adminUsername, e.getMessage());
 			}
 		};
-	}
-
-	private static void tryRegister(UserService userService, String username, String email, String password,
-			Role role) {
-		try {
-			userService.register(username, email, password, role);
-		} catch (IllegalArgumentException e) {
-			// already exists
-		}
 	}
 }
