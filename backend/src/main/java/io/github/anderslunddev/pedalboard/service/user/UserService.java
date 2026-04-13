@@ -66,14 +66,4 @@ public class UserService {
 	public void deleteUser(UUID userId) {
 		userPersistence.deleteById(userId);
 	}
-
-	@Transactional
-	public User promoteToAdmin(String username) {
-		User user = userPersistence.findByUsername(username)
-				.orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-		if (user.isAdmin()) {
-			return user;
-		}
-		return userPersistence.updateRole(user.id(), Role.ADMIN);
-	}
 }
