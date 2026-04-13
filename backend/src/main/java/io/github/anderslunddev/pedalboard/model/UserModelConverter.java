@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.model;
 
+import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,7 @@ class UserModelConverter {
 		return new User(entity.getId(), entity.getUsername(), entity.getEmail(), entity.getPassword(), entity.getRole());
 	}
 
-	UserModel toEntity(String username, String email, String password, String role) {
+	UserModel toEntity(String username, String email, String password, Role role) {
 		Objects.requireNonNull(username, "username must not be null");
 		Objects.requireNonNull(email, "email must not be null");
 		Objects.requireNonNull(password, "password must not be null");

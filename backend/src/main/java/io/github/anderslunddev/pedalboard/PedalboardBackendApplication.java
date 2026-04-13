@@ -1,6 +1,6 @@
 package io.github.anderslunddev.pedalboard;
 
-import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.service.user.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +26,8 @@ public class PedalboardBackendApplication {
 	@Profile("!prod")
 	CommandLineRunner seedDefaultUsers(UserService userService) {
 		return args -> {
-			tryRegister(userService, "anders", "anders@example.com", "pass", User.ROLE_ADMIN);
-			tryRegister(userService, "panders", "panders@example.com", "word", User.ROLE_USER);
+			tryRegister(userService, "anders", "anders@example.com", "pass", Role.ADMIN);
+			tryRegister(userService, "panders", "panders@example.com", "word", Role.USER);
 		};
 	}
 
@@ -52,7 +52,7 @@ public class PedalboardBackendApplication {
 	}
 
 	private static void tryRegister(UserService userService, String username, String email, String password,
-			String role) {
+			Role role) {
 		try {
 			userService.register(username, email, password, role);
 		} catch (IllegalArgumentException e) {

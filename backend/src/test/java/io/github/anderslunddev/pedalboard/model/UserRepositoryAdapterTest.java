@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.model;
 
+import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import io.github.anderslunddev.pedalboard.domain.user.UserMother;
 import org.junit.jupiter.api.Test;
@@ -31,7 +32,7 @@ class UserRepositoryAdapterTest {
 		String username = "alice";
 		String email = "alice@example.com";
 		String password = "secret";
-		String role = "USER";
+		Role role = Role.USER;
 
 		UserModel toSave = new UserModel();
 		when(converter.toEntity(username, email, password, role)).thenReturn(toSave);

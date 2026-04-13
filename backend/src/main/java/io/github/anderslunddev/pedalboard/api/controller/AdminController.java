@@ -1,10 +1,12 @@
 package io.github.anderslunddev.pedalboard.api.controller;
 
+import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import io.github.anderslunddev.pedalboard.service.user.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,22 +57,22 @@ public class AdminController {
 		return ResponseEntity.noContent().build();
 	}
 
-	public record AdminUserResponse(UUID id, String username, String email, String role) {
+	public record AdminUserResponse(UUID id, String username, String email, Role role) {
 	}
 
 	public record CreateUserRequest(
 			@NotBlank(message = "Username must not be blank") String username,
 			@NotBlank(message = "Email must not be blank") @Email(message = "Must be a valid email") String email,
 			@NotBlank(message = "Password must not be blank") @Size(min = 8, message = "Password must be at least 8 characters") String password,
-			String role) {
+			Role role) {
 		public CreateUserRequest {
-			if (role == null || role.isBlank()) {
-				role = User.ROLE_USER;
+			if (role == null) {
+				role = Role.USER;
 			}
 		}
 	}
 
-	public record UpdateRoleRequest(@NotBlank(message = "Role must not be blank") String role) {
+	public record UpdateRoleRequest(@NotNull(message = "Role must not be null") Role role) {
 	}
 
 	public record ResetPasswordRequest(

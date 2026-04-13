@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.model;
 
+import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ public class UserRepositoryAdapter {
 		this.converter = converter;
 	}
 
-	public User createUser(String username, String email, String password, String role) {
+	public User createUser(String username, String email, String password, Role role) {
 		UserModel toSave = converter.toEntity(username, email, password, role);
 		UserModel saved = userRepository.save(toSave);
 		return converter.toDomain(saved);
@@ -44,7 +45,7 @@ public class UserRepositoryAdapter {
 		return userRepository.existsByEmail(email);
 	}
 
-	public User updateRole(UUID userId, String role) {
+	public User updateRole(UUID userId, Role role) {
 		UserModel model = userRepository.findById(userId)
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 		model.setRole(role);

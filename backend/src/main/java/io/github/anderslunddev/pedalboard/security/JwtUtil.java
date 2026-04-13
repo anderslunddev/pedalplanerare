@@ -1,6 +1,6 @@
 package io.github.anderslunddev.pedalboard.security;
 
-import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.AuthPrincipal;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,11 +27,11 @@ public class JwtUtil {
 		this.expirationSeconds = expirationSeconds;
 	}
 
-	public String generateToken(User user) {
+	public String generateToken(AuthPrincipal principal) {
 		Instant now = Instant.now();
-		return Jwts.builder().setSubject(user.username()).setIssuedAt(Date.from(now))
+		return Jwts.builder().setSubject(principal.username()).setIssuedAt(Date.from(now))
 				.setExpiration(Date.from(now.plusSeconds(expirationSeconds)))
-				.addClaims(Map.of("userId", user.id().toString(), "role", user.role()))
+				.addClaims(Map.of("userId", principal.userId().toString(), "role", principal.role().name()))
 				.signWith(key, SignatureAlgorithm.HS256).compact();
 	}
 

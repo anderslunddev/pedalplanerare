@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.service.user;
 
+import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import io.github.anderslunddev.pedalboard.model.UserRepositoryAdapter;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -23,11 +24,11 @@ public class UserService {
 
 	@Transactional
 	public User register(String username, String email, String password) {
-		return register(username, email, password, User.ROLE_USER);
+		return register(username, email, password, Role.USER);
 	}
 
 	@Transactional
-	public User register(String username, String email, String password, String role) {
+	public User register(String username, String email, String password, Role role) {
 		if (userRepositoryAdapter.existsByUsername(username)) {
 			throw new IllegalArgumentException("Username is already taken");
 		}
@@ -51,10 +52,7 @@ public class UserService {
 	}
 
 	@Transactional
-	public User updateRole(UUID userId, String role) {
-		if (!User.ROLE_USER.equals(role) && !User.ROLE_ADMIN.equals(role)) {
-			throw new IllegalArgumentException("Invalid role: " + role);
-		}
+	public User updateRole(UUID userId, Role role) {
 		return userRepositoryAdapter.updateRole(userId, role);
 	}
 
@@ -76,6 +74,6 @@ public class UserService {
 		if (user.isAdmin()) {
 			return user;
 		}
-		return userRepositoryAdapter.updateRole(user.id(), User.ROLE_ADMIN);
+		return userRepositoryAdapter.updateRole(user.id(), Role.ADMIN);
 	}
 }

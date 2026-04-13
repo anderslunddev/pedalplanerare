@@ -1,6 +1,6 @@
 package io.github.anderslunddev.pedalboard.model;
 
-import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.Role;
 import jakarta.persistence.*;
 
 import java.util.ArrayList;
@@ -23,8 +23,9 @@ class UserModel {
 	@Column(nullable = false)
 	private String password;
 
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, columnDefinition = "varchar(255) default 'USER'")
-	private String role = User.ROLE_USER;
+	private Role role = Role.USER;
 
 	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<BoardModel> boards = new ArrayList<>();
@@ -32,11 +33,11 @@ class UserModel {
 	public UserModel() {
 	}
 
-	public UserModel(String username, String email, String password, String role) {
+	public UserModel(String username, String email, String password, Role role) {
 		this.username = username;
 		this.email = email;
 		this.password = password;
-		this.role = role != null ? role : User.ROLE_USER;
+		this.role = role != null ? role : Role.USER;
 	}
 
 	public UUID getId() {
@@ -71,11 +72,11 @@ class UserModel {
 		this.password = password;
 	}
 
-	public String getRole() {
+	public Role getRole() {
 		return role;
 	}
 
-	public void setRole(String role) {
+	public void setRole(Role role) {
 		this.role = role;
 	}
 

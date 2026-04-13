@@ -1,5 +1,7 @@
 package io.github.anderslunddev.pedalboard.api.controller;
 
+import io.github.anderslunddev.pedalboard.domain.user.AuthPrincipal;
+import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
 import io.github.anderslunddev.pedalboard.security.JwtUtil;
 import io.github.anderslunddev.pedalboard.service.user.UserService;
@@ -42,7 +44,7 @@ public class UserController {
 
 			User user = userService.findByUsername(request.username()).orElseThrow();
 
-			String token = jwtUtil.generateToken(user);
+			String token = jwtUtil.generateToken(AuthPrincipal.fromUser(user));
 
 			return ResponseEntity
 					.ok(new LoginResponse(token, new UserResponse(user.id(), user.username(), user.email(), user.role())));
@@ -60,7 +62,7 @@ public class UserController {
 			@NotBlank(message = "Password must not be blank") String password) {
 	}
 
-	public record UserResponse(java.util.UUID id, String username, String email, String role) {
+	public record UserResponse(java.util.UUID id, String username, String email, Role role) {
 	}
 
 	public record LoginResponse(String token, UserResponse user) {
