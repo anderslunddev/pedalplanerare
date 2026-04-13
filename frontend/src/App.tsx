@@ -4,6 +4,7 @@ import LoginPage from "./components/LoginPage";
 import CreateBoardDialog from "./components/CreateBoardDialog";
 import AddPedalDialog from "./components/AddPedalDialog";
 import AdminPanel from "./components/AdminPanel";
+import ChangePasswordDialog from "./components/ChangePasswordDialog";
 import { useAuth } from "./useAuth";
 import { authHeaders } from "./api";
 import { isOverlapping, getContrastTextColor } from "./utils";
@@ -77,6 +78,7 @@ const App: React.FC = () => {
   const [confirmingDeleteBoard, setConfirmingDeleteBoard] = useState(false);
 
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   useEffect(() => {
     setConfirmingDeleteBoard(false);
@@ -264,11 +266,20 @@ const App: React.FC = () => {
 
   if (showAdmin && currentUser.role === "ADMIN") {
     return (
-      <AdminPanel
-        authToken={authToken}
-        currentUserId={currentUser.id}
-        onBack={() => setShowAdmin(false)}
-      />
+      <>
+        {showChangePassword && (
+          <ChangePasswordDialog
+            authToken={authToken}
+            onClose={() => setShowChangePassword(false)}
+          />
+        )}
+        <AdminPanel
+          authToken={authToken}
+          currentUserId={currentUser.id}
+          onBack={() => setShowAdmin(false)}
+          onOpenChangePassword={() => setShowChangePassword(true)}
+        />
+      </>
     );
   }
 
@@ -281,6 +292,9 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-900">
+      {showChangePassword && (
+        <ChangePasswordDialog authToken={authToken} onClose={() => setShowChangePassword(false)} />
+      )}
       <Sidebar
         activeBoardId={activeBoardId}
         onBoardSelect={setActiveBoardId}
@@ -304,6 +318,13 @@ const App: React.FC = () => {
                 Admin
               </button>
             )}
+            <button
+              type="button"
+              onClick={() => setShowChangePassword(true)}
+              className="text-sm text-slate-300 hover:text-indigo-300"
+            >
+              Change password
+            </button>
             <button onClick={handleLogout} className="text-sm text-slate-300 hover:text-red-300">
               Logout
             </button>

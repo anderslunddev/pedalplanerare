@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -26,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Sql(scripts = "/integration-test-reset-and-admin.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class BoardControllerIntegrationTest {
 
 	@Autowired
@@ -45,15 +47,20 @@ class BoardControllerIntegrationTest {
 	void registerIntegrationTestUser() throws Exception {
 		defaultUsername = "itest_" + System.nanoTime();
 		String email = defaultUsername + "@example.com";
-		String registerPayload = """
+		String createPayload = """
 				{
 				  "username": "%s",
 				  "email": "%s",
-				  "password": "%s"
+				  "password": "%s",
+				  "role": "USER"
 				}
 				""".formatted(defaultUsername, email, DEFAULT_PASSWORD);
-		mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(registerPayload))
-				.andExpect(status().isCreated());
+		mockMvc.perform(post("/api/admin/users").header("Authorization", adminAuthHeader())
+				.contentType(MediaType.APPLICATION_JSON).content(createPayload)).andExpect(status().isCreated());
+	}
+
+	private String adminAuthHeader() throws Exception {
+		return authHeader("testadmin", DEFAULT_PASSWORD);
 	}
 
 	private UUID defaultUserId() {
@@ -114,19 +121,19 @@ class BoardControllerIntegrationTest {
 		String boardJson = createBoardResult.getResponse().getContentAsString(StandardCharsets.UTF_8);
 		String boardId = objectMapper.readTree(boardJson).get("id").asText();
 
-		// Register a different user
 		String otherUsername = "otheruser_" + System.currentTimeMillis();
 		String otherEmail = otherUsername + "@example.com";
-		String registerPayload = """
+		String createOtherPayload = """
 				{
 				  "username": "%s",
 				  "email": "%s",
-				  "password": "password123"
+				  "password": "password123",
+				  "role": "USER"
 				}
 				""".formatted(otherUsername, otherEmail);
 
-		mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(registerPayload))
-				.andExpect(status().isCreated());
+		mockMvc.perform(post("/api/admin/users").header("Authorization", adminAuthHeader())
+				.contentType(MediaType.APPLICATION_JSON).content(createOtherPayload)).andExpect(status().isCreated());
 
 		// Login as the other user and attempt to access the board
 		String otherAuth = authHeader(otherUsername, "password123");

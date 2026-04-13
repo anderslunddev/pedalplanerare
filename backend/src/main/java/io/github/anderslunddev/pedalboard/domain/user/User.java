@@ -5,7 +5,7 @@ import java.util.UUID;
 
 /**
  * Simple domain user. Password is expected to be stored in hashed form (see
- * {@code UserService.register}).
+ * {@code UserService} when creating or updating passwords).
  */
 public record User(UUID id, String username, String email, String password, Role role) {
 

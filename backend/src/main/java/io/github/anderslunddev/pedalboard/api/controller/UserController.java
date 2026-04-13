@@ -33,13 +33,6 @@ public class UserController {
 		this.jwtUtil = jwtUtil;
 	}
 
-	@PostMapping
-	public ResponseEntity<UserResponse> register(@Valid @RequestBody RegisterRequest request) {
-		User created = userService.register(request.username(), request.email(), request.password());
-		return ResponseEntity.status(HttpStatus.CREATED)
-				.body(new UserResponse(created.id(), created.username(), created.email(), created.role()));
-	}
-
 	@GetMapping("/me")
 	public ResponseEntity<UserResponse> me() {
 		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -50,6 +43,16 @@ public class UserController {
 				.map(u -> new UserResponse(u.id(), u.username(), u.email(), u.role()))
 				.map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
+	}
+
+	@PutMapping("/me/password")
+	public ResponseEntity<Void> changeOwnPassword(@Valid @RequestBody ChangePasswordRequest request) {
+		Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+		if (authentication == null || !(authentication.getDetails() instanceof UUID userId)) {
+			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+		}
+		userService.changeOwnPassword(userId, request.currentPassword(), request.newPassword());
+		return ResponseEntity.noContent().build();
 	}
 
 	@PostMapping("/login")
@@ -69,9 +72,9 @@ public class UserController {
 		}
 	}
 
-	public record RegisterRequest(@NotBlank(message = "Username must not be blank") String username,
-			@NotBlank(message = "Email must not be blank") @Email(message = "Email must be a valid email address") String email,
-			@NotBlank(message = "Password must not be blank") @Size(min = 8, message = "Password must be at least 8 characters") String password) {
+	public record ChangePasswordRequest(
+			@NotBlank(message = "Current password must not be blank") String currentPassword,
+			@NotBlank(message = "New password must not be blank") @Size(min = 8, message = "New password must be at least 8 characters") String newPassword) {
 	}
 
 	public record LoginRequest(@NotBlank(message = "Username must not be blank") String username,

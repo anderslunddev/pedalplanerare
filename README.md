@@ -54,17 +54,18 @@ npm run dev
 
 Frontend runs at `http://localhost:5173` and proxies `/api` to the backend.
 
-Open **http://localhost:5173** and sign up or log in to create boards and add pedals.
+Open **http://localhost:5173** and log in. There is no public self-registration: the first admin is created **outside the app** (e.g. SQL row in `user_model` with a BCrypt-hashed password). Admins add further users from **Admin → Create User**. Any logged-in user can use **Change password** in the header.
 
 ---
 
 ## Authentication
 
-- **Register:** `POST /api/users` with `username`, `email`, `password` (min 8 chars).
+- **Users:** Created by an **ADMIN** via `POST /api/admin/users` (same as the Admin UI), or inserted manually in the database with a **BCrypt** password hash (same algorithm/strength as Spring’s `BCryptPasswordEncoder`).
 - **Login:** `POST /api/users/login` with `username` and `password`. Returns a JWT and user object.
+- **Change password:** `PUT /api/users/me/password` with JSON `{ "currentPassword", "newPassword" }` (min 8 chars for the new password) and a valid Bearer token.
 - **API calls:** Send `Authorization: Bearer <token>` for protected endpoints (boards, pedals, cables).
 
-Login and registration are rate-limited (10 requests per minute per IP by default).
+Login is rate-limited (10 requests per minute per IP by default).
 
 ---
 

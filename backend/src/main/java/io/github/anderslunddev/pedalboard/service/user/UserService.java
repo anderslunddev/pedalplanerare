@@ -66,4 +66,13 @@ public class UserService {
 	public void deleteUser(UUID userId) {
 		userPersistence.deleteById(userId);
 	}
+
+	@Transactional
+	public void changeOwnPassword(UUID userId, String currentPassword, String newPassword) {
+		User user = userPersistence.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
+		if (!passwordEncoder.matches(currentPassword, user.password())) {
+			throw new IllegalArgumentException("Current password is incorrect");
+		}
+		userPersistence.updatePassword(userId, passwordEncoder.encode(newPassword));
+	}
 }

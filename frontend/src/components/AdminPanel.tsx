@@ -12,9 +12,10 @@ type AdminPanelProps = {
   authToken: string | null;
   currentUserId: string;
   onBack: () => void;
+  onOpenChangePassword?: () => void;
 };
 
-const AdminPanel: React.FC<AdminPanelProps> = ({ authToken, currentUserId, onBack }) => {
+const AdminPanel: React.FC<AdminPanelProps> = ({ authToken, currentUserId, onBack, onOpenChangePassword }) => {
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -151,6 +152,15 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ authToken, currentUserId, onBac
             >
               {showCreateForm ? "Cancel" : "Create User"}
             </button>
+            {onOpenChangePassword && (
+              <button
+                type="button"
+                onClick={onOpenChangePassword}
+                className="inline-flex items-center justify-center rounded border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700"
+              >
+                Change password
+              </button>
+            )}
             <button
               onClick={onBack}
               className="inline-flex items-center justify-center rounded border border-slate-600 px-4 py-2 text-sm font-medium text-slate-200 hover:bg-slate-700"

@@ -13,7 +13,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -62,7 +61,6 @@ public class SecurityConfig {
 		http.authorizeHttpRequests(auth -> {
 			auth.requestMatchers("/", "/index.html", "/assets/**", "/static/**", "/favicon.ico",
 					"/api/users/login").permitAll();
-			auth.requestMatchers(HttpMethod.POST, "/api/users").permitAll();
 			if (h2ConsoleEnabled) {
 				auth.requestMatchers("/h2-console/**").permitAll();
 			}

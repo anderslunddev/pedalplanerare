@@ -39,7 +39,7 @@ bucket4j:
     - id: auth-rate-limit
       cache-name: auth-rate-limit
       filter-method: servlet
-      url: "^(/api/users|/api/users/login)$"
+      url: "^(/api/users/login)$"
       rate-limits:
         - cache-key: "@clientKeyResolver.getKey(#root)"
           execute-predicates: METHOD=POST
