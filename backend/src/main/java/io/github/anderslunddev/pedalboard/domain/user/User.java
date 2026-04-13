@@ -22,8 +22,4 @@ public record User(UUID id, String username, Email email, String password, Role 
 			role = Role.USER;
 		}
 	}
-
-	public boolean isAdmin() {
-		return role == Role.ADMIN;
-	}
 }

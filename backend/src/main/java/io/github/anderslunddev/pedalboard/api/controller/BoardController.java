@@ -14,6 +14,7 @@ import io.github.anderslunddev.pedalboard.domain.value.SurfaceArea;
 import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
 import io.github.anderslunddev.pedalboard.service.board.BoardService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -89,9 +90,9 @@ public class BoardController {
 			@Positive(message = "Pedal width must be greater than zero") double width,
 			@Positive(message = "Pedal height must be greater than zero") double height,
 			@NotBlank(message = "Color must not be blank") String color,
-			@jakarta.validation.constraints.Min(value = 0, message = "X coordinate must be non-negative") double x,
-			@jakarta.validation.constraints.Min(value = 0, message = "Y coordinate must be non-negative") double y,
-			@jakarta.validation.constraints.Positive(message = "Placement must be greater than zero") Integer placement // Optional
+			@Min(value = 0, message = "X coordinate must be non-negative") double x,
+			@Min(value = 0, message = "Y coordinate must be non-negative") double y,
+			@Positive(message = "Placement must be greater than zero") Integer placement // Optional
 																														// -
 																														// if
 																														// null,

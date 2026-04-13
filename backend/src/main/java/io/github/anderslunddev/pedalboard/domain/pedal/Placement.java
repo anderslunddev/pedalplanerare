@@ -1,7 +1,5 @@
 package io.github.anderslunddev.pedalboard.domain.pedal;
 
-import java.util.Objects;
-
 /**
  * Domain value object representing a pedal placement number. Placement must be
  * a positive integer.

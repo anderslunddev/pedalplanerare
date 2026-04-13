@@ -4,7 +4,6 @@ import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalToCreate;
 import io.github.anderslunddev.pedalboard.domain.pedal.Placement;
 import io.github.anderslunddev.pedalboard.domain.user.UserId;
-import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
 import io.github.anderslunddev.pedalboard.domain.value.SurfaceArea;
 
 import java.util.List;
