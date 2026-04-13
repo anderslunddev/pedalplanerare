@@ -16,7 +16,7 @@ services:
     startCommand: cd backend && java -jar target/pedalboard-backend-0.0.1-SNAPSHOT.jar
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: production
+        value: prod
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL
