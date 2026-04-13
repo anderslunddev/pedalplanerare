@@ -19,6 +19,9 @@ spring:
     show-sql: ${SHOW_SQL:true}
 
 app:
+  admin:
+    # Optional: promote this user to ADMIN on startup (e.g. set ADMIN_USERNAME on Render).
+    bootstrap-username: ${ADMIN_USERNAME:}
   jwt:
     # Use JWT_SECRET from environment (required in production)
     # Must be at least 32 characters
