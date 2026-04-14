@@ -10,9 +10,81 @@ A full-stack web app for planning guitar pedalboard layouts: create boards, plac
 
 ## Prerequisites
 
-- **Java** 17+ (JDK)
-- **Node.js** 18+ and **npm**
-- **Maven** 3.8+
+Choose **one** path:
+
+| Path | You need |
+|------|-----------|
+| **Docker (full stack)** | [Docker](https://docs.docker.com/get-docker/) with Compose v2 only — no local Java/Node/Maven. |
+| **Native development** | **Java** 17+ (JDK), **Node.js** 20+ and **npm**, **Maven** 3.8+ |
+
+For native setups, use any current **JDK 17** and **Node 20** (patch versions do not need to match CI exactly).
+
+---
+
+## Local development with Docker
+
+Runs **PostgreSQL** (data in a **named volume** so it survives restarts) and the **same multi-stage image** as [`Dockerfile`](Dockerfile) / Render (`java` + built SPA on port **8080**). **JDWP** is enabled on **5005** for remote debugging.
+
+1. Copy environment template (optional — Compose has safe defaults for local dev):
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Start:
+
+   ```bash
+   docker compose up --build
+   ```
+
+3. Open **http://localhost:8080** (built-in static UI + API).
+
+**Seeded accounts (Compose `prod,docker` only):**
+
+| Username     | Password    | Role  |
+|-------------|-------------|-------|
+| `dockeradmin` | `password123` | ADMIN |
+| `anders`      | `pass4321`      | USER  |
+
+Create more users from **Admin** after logging in as `dockeradmin`.
+
+**Ports**
+
+| Host | Service |
+|------|---------|
+| 8080 | App (HTTP) |
+| 5005 | JVM remote debug (JDWP) |
+| 5432 | PostgreSQL (for tools on the host; optional) |
+
+**Remote debugging:** attach your IDE to **host `localhost`**, port **5005**, transport **socket**, debugger mode **attach**. Suspend is off (`suspend=n`) so the app starts without waiting.
+
+**Reset database data** (wipe the Postgres volume):
+
+```bash
+docker compose down -v
+```
+
+Next `docker compose up` creates a fresh volume and reapplies schema + seed.
+
+**Environment variables** (see [`.env.example`](.env.example)): `JWT_SECRET` (≥ 32 characters), `CORS_ALLOWED_ORIGINS`, optional `POSTGRES_PUBLISH_PORT` / `APP_PUBLISH_PORT` / `DEBUG_PUBLISH_PORT` if default ports clash.
+
+---
+
+## Postgres only in Docker (native JVM + Node)
+
+Use real PostgreSQL while running Spring and Vite on the machine:
+
+```bash
+docker compose up -d postgres
+```
+
+Point the backend at `localhost` (default published port **5432**, user/password/db **pedalboard**). Set:
+
+- `SPRING_PROFILES_ACTIVE=prod` (or include a small local profile if you add one)
+- `DATABASE_URL=postgres://pedalboard:pedalboard@localhost:5432/pedalboard`  
+  (the JAR [`entrypoint.sh`](entrypoint.sh) maps this to Spring datasource properties), **or** set `SPRING_DATASOURCE_URL` / username / password manually.
+
+Then run `mvn spring-boot:run` and `npm run dev` as below.
 
 ---
 
@@ -54,7 +126,7 @@ npm run dev
 
 Frontend runs at `http://localhost:5173` and proxies `/api` to the backend.
 
-Open **http://localhost:5173** and log in. There is no public self-registration: the first admin is created **outside the app** (e.g. SQL row in `user_model` with a BCrypt-hashed password). Admins add further users from **Admin → Create User**. Any logged-in user can use **Change password** in the header.
+Open **http://localhost:5173** and log in. There is no public self-registration: the first admin is created **outside the app** (e.g. SQL row in `user_model` with a BCrypt-hashed password), except the **Docker Compose** path above which seeds `dockeradmin`. Admins add further users from **Admin → Create User**. Any logged-in user can use **Change password** in the header.
 
 ---
 
@@ -132,6 +204,8 @@ The app has a single frontend at the **repo root** (`frontend/`). The backend li
 ```text
 pedalplanerare/
   package.json      # Root orchestrator (scripts only; no deps). Node app is in frontend/
+  compose.yaml      # Docker Compose: Postgres + app (local full stack)
+  .env.example      # Template env vars for Compose
   backend/          # Spring Boot app (build references ../frontend)
     src/
     pom.xml

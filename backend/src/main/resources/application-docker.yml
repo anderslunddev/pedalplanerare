@@ -1,0 +1,9 @@
+# Profile "docker": used with Compose (SPRING_PROFILES_ACTIVE=prod,docker).
+# Runs idempotent SQL seed after Hibernate creates the schema.
+spring:
+  jpa:
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:db/docker-compose-seed.sql
