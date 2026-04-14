@@ -1,23 +1,27 @@
 package io.github.anderslunddev.pedalboard.domain.user;
 
-import java.util.Objects;
-
 /**
  * Normalized login username (trimmed, non-blank) stored in persistence.
+ * Construct only via {@link #parse(String)} so string input always goes through validation.
  */
-public record UserName(String value) {
+public final class UserName {
 
 	public static final int MAX_LENGTH = 255;
 
-	public UserName {
-		Objects.requireNonNull(value, "Username must not be null");
-		value = value.strip();
-		if (value.isBlank()) {
+	private final String value;
+
+	private UserName(String raw) {
+		if (raw == null) {
 			throw new IllegalArgumentException("Username must not be blank");
 		}
-		if (value.length() > MAX_LENGTH) {
+		String normalized = raw.strip();
+		if (normalized.isBlank()) {
+			throw new IllegalArgumentException("Username must not be blank");
+		}
+		if (normalized.length() > MAX_LENGTH) {
 			throw new IllegalArgumentException("Username is too long");
 		}
+		this.value = normalized;
 	}
 
 	/**
@@ -26,10 +30,28 @@ public record UserName(String value) {
 	 * @throws IllegalArgumentException if null, blank after trim, or too long
 	 */
 	public static UserName parse(String raw) {
-		if (raw == null) {
-			throw new IllegalArgumentException("Username must not be blank");
-		}
 		return new UserName(raw);
+	}
+
+	public String value() {
+		return value;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) {
+			return true;
+		}
+		if (o == null || getClass() != o.getClass()) {
+			return false;
+		}
+		UserName userName = (UserName) o;
+		return value.equals(userName.value);
+	}
+
+	@Override
+	public int hashCode() {
+		return value.hashCode();
 	}
 
 	@Override
