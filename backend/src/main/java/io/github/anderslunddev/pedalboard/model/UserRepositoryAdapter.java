@@ -3,6 +3,7 @@ package io.github.anderslunddev.pedalboard.model;
 import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.UserName;
 import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import org.springframework.stereotype.Component;
 
@@ -21,14 +22,14 @@ public class UserRepositoryAdapter implements UserPersistencePort {
 		this.converter = converter;
 	}
 
-	public User createUser(String username, Email email, String password, Role role) {
-		UserModel toSave = converter.toEntity(username, email, password, role);
+	public User createUser(UserName userName, Email email, String password, Role role) {
+		UserModel toSave = converter.toEntity(userName, email, password, role);
 		UserModel saved = userRepository.save(toSave);
 		return converter.toDomain(saved);
 	}
 
-	public Optional<User> findByUsername(String username) {
-		return userRepository.findByUsername(username).map(converter::toDomain);
+	public Optional<User> findByUsername(UserName userName) {
+		return userRepository.findByUsername(userName.value()).map(converter::toDomain);
 	}
 
 	public Optional<User> findById(UUID id) {
@@ -39,8 +40,8 @@ public class UserRepositoryAdapter implements UserPersistencePort {
 		return userRepository.findAll().stream().map(converter::toDomain).toList();
 	}
 
-	public boolean existsByUsername(String username) {
-		return userRepository.existsByUsername(username);
+	public boolean existsByUsername(UserName userName) {
+		return userRepository.existsByUsername(userName.value());
 	}
 
 	public boolean existsByEmail(Email email) {

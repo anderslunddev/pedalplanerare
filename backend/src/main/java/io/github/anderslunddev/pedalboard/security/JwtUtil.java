@@ -29,7 +29,7 @@ public class JwtUtil {
 
 	public String generateToken(AuthPrincipal principal) {
 		Instant now = Instant.now();
-		return Jwts.builder().setSubject(principal.username()).setIssuedAt(Date.from(now))
+		return Jwts.builder().setSubject(principal.userName().value()).setIssuedAt(Date.from(now))
 				.setExpiration(Date.from(now.plusSeconds(expirationSeconds)))
 				.addClaims(Map.of("userId", principal.userId().toString(), "role", principal.role().name()))
 				.signWith(key, SignatureAlgorithm.HS256).compact();

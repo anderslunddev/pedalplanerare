@@ -3,6 +3,7 @@ package io.github.anderslunddev.pedalboard.service.user;
 import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.UserName;
 import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,15 +30,16 @@ public class UserService {
 	}
 
 	@Transactional
-	public User register(String username, String emailRaw, String password, Role role) {
+	public User register(String usernameRaw, String emailRaw, String password, Role role) {
+		UserName userName = UserName.parse(usernameRaw);
 		Email email = Email.parse(emailRaw);
-		assertUsernameAndEmailAvailable(username, email);
+		assertUsernameAndEmailAvailable(userName, email);
 		String hashed = passwordEncoder.encode(password);
-		return userPersistence.createUser(username, email, hashed, role);
+		return userPersistence.createUser(userName, email, hashed, role);
 	}
 
-	private void assertUsernameAndEmailAvailable(String username, Email email) {
-		if (userPersistence.existsByUsername(username)) {
+	private void assertUsernameAndEmailAvailable(UserName userName, Email email) {
+		if (userPersistence.existsByUsername(userName)) {
 			throw new IllegalArgumentException("Username is already taken");
 		}
 		if (userPersistence.existsByEmail(email)) {
@@ -45,8 +47,12 @@ public class UserService {
 		}
 	}
 
-	public Optional<User> findByUsername(String username) {
-		return userPersistence.findByUsername(username);
+	public Optional<User> findByUsername(String rawUsername) {
+		try {
+			return userPersistence.findByUsername(UserName.parse(rawUsername));
+		} catch (IllegalArgumentException e) {
+			return Optional.empty();
+		}
 	}
 
 	public Optional<User> findById(UUID id) {

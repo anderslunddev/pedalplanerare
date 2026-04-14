@@ -54,7 +54,7 @@ public class AdminController {
 	}
 
 	private static AdminUserResponse toResponse(User user) {
-		return new AdminUserResponse(user.id(), user.username(), user.email().value(), user.role());
+		return new AdminUserResponse(user.id(), user.userName().value(), user.email().value(), user.role());
 	}
 
 	public record AdminUserResponse(UUID id, String username, String email, Role role) {

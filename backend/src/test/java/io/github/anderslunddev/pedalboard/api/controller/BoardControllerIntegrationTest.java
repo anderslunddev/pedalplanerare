@@ -1,5 +1,6 @@
 package io.github.anderslunddev.pedalboard.api.controller;
 
+import io.github.anderslunddev.pedalboard.domain.user.UserName;
 import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -64,7 +65,7 @@ class BoardControllerIntegrationTest {
 	}
 
 	private UUID defaultUserId() {
-		return userPersistence.findByUsername(defaultUsername)
+		return userPersistence.findByUsername(UserName.parse(defaultUsername))
 				.orElseThrow(() -> new IllegalStateException("Integration test user not found: " + defaultUsername))
 				.id();
 	}

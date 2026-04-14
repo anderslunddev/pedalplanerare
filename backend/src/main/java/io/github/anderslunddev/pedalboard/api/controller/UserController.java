@@ -78,7 +78,7 @@ public class UserController {
 	}
 
 	private static UserResponse toResponse(User user) {
-		return new UserResponse(user.id(), user.username(), user.email().value(), user.role());
+		return new UserResponse(user.id(), user.userName().value(), user.email().value(), user.role());
 	}
 
 	public record ChangePasswordRequest(
