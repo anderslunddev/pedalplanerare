@@ -5,14 +5,12 @@ import io.github.anderslunddev.pedalboard.domain.value.Coordinate;
 import io.github.anderslunddev.pedalboard.domain.value.SurfaceArea;
 
 import java.util.Objects;
-import java.util.UUID;
-//TODO should pedals have a reference to the board? isnt the real domain relationship that a board has pedals? domain needs to be "clean".
-public record Pedal(PedalId id, UUID boardId, PedalName name, SurfaceArea surfaceArea, Color color,
+
+public record Pedal(PedalId id, PedalName name, SurfaceArea surfaceArea, Color color,
 		Coordinate coordinate, Placement placement) {
 
 	public Pedal {
 		Objects.requireNonNull(id, "Pedal id must not be null");
-		Objects.requireNonNull(boardId, "Pedal boardId must not be null");
 		Objects.requireNonNull(name, "Pedal name must not be null");
 		Objects.requireNonNull(surfaceArea, "Pedal surface area must not be null");
 		Objects.requireNonNull(color, "Pedal color must not be null");

@@ -60,7 +60,7 @@ class PedalRepositoryAdapterTest {
 	}
 
 	@Test
-	void updatePosition_shouldReturnUpdatedPedalWhenExists() {
+	void updatePosition_shouldReturnPedalWhenExists() {
 		UUID id = UUID.randomUUID();
 		PedalId pedalId = new PedalId(id);
 		Coordinate newCoordinate = new Coordinate(5.0, 6.0);
@@ -70,13 +70,13 @@ class PedalRepositoryAdapterTest {
 		PedalModel savedModel = new PedalModel();
 		when(pedalRepository.save(existingModel)).thenReturn(savedModel);
 
-		Pedal expected = PedalMother.simple();
-		when(converter.toDomain(savedModel)).thenReturn(expected);
+		Pedal expectedPedal = PedalMother.simple();
+		when(converter.toDomain(savedModel)).thenReturn(expectedPedal);
 
 		Optional<Pedal> result = adapter.updatePosition(pedalId, newCoordinate);
 
 		assertTrue(result.isPresent());
-		assertSame(expected, result.get());
+		assertSame(expectedPedal, result.get());
 		verify(pedalRepository).findById(id);
 		verify(pedalRepository).save(existingModel);
 		assertEquals(5.0, existingModel.getX());

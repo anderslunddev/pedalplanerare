@@ -41,7 +41,7 @@ class PedalServiceTest {
 		PedalId id = new PedalId(rawId);
 		Coordinate coordinate = new Coordinate(10.0, 20.0);
 
-		Pedal pedal = new Pedal(id, UUID.randomUUID(), new PedalName("Test"), new SurfaceArea(5.0, 10.0),
+		Pedal pedal = new Pedal(id, new PedalName("Test"), new SurfaceArea(5.0, 10.0),
 				new Color("#ffffff"), coordinate, new Placement(1));
 
 		when(pedalPersistence.updatePosition(id, coordinate)).thenReturn(Optional.of(pedal));

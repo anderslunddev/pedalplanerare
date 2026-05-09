@@ -3,11 +3,11 @@ package io.github.anderslunddev.pedalboard.port;
 import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.UserId;
 import io.github.anderslunddev.pedalboard.domain.user.UserName;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * Outgoing port: load and persist users (credentials and roles).
@@ -18,7 +18,7 @@ public interface UserPersistencePort {
 
 	Optional<User> findByUsername(UserName userName);
 
-	Optional<User> findById(UUID id);
+	Optional<User> findById(UserId id);
 
 	List<User> findAll();
 
@@ -26,9 +26,9 @@ public interface UserPersistencePort {
 
 	boolean existsByEmail(Email email);
 
-	User updateRole(UUID userId, Role role);
+	User updateRole(UserId userId, Role role);
 
-	User updatePassword(UUID userId, String hashedPassword);
+	User updatePassword(UserId userId, String hashedPassword);
 
-	void deleteById(UUID userId);
+	void deleteById(UserId userId);
 }

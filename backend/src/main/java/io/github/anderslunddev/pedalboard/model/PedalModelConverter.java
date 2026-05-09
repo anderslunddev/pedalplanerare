@@ -19,8 +19,8 @@ import java.util.Objects;
                     "Pedal " + entity.getId() + " has invalid placement: " + entity.getPlacement());
         }
         Placement placement = new Placement(entity.getPlacement());
-        return new Pedal(new PedalId(entity.getId()), entity.getBoard() != null ? entity.getBoard().getId() : null,
-                new PedalName(entity.getName()), new SurfaceArea(entity.getWidth(), entity.getHeight()), color,
+        return new Pedal(new PedalId(entity.getId()), new PedalName(entity.getName()),
+                new SurfaceArea(entity.getWidth(), entity.getHeight()), color,
                 new Coordinate(entity.getX(), entity.getY()), placement);
     }
 

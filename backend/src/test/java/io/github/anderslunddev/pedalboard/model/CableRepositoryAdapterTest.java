@@ -44,7 +44,7 @@ class CableRepositoryAdapterTest {
 		CableModel savedModel = new CableModel();
 		when(cableRepository.save(toSave)).thenReturn(savedModel);
 
-		Cable expected = CableMother.withBoardId(boardId);
+		Cable expected = CableMother.simple();
 		when(converter.toDomain(savedModel)).thenReturn(expected);
 
 		Cable result = adapter.saveCable(boardId, sourcePedalId, destinationPedalId, pathPoints, totalLength);
@@ -62,8 +62,8 @@ class CableRepositoryAdapterTest {
 		CableModel m2 = new CableModel();
 		when(cableRepository.findByBoardId(boardId.value())).thenReturn(List.of(m1, m2));
 
-		Cable c1 = CableMother.withBoardId(boardId);
-		Cable c2 = CableMother.withBoardId(boardId);
+		Cable c1 = CableMother.simple();
+		Cable c2 = CableMother.simple();
 		when(converter.toDomain(m1)).thenReturn(c1);
 		when(converter.toDomain(m2)).thenReturn(c2);
 

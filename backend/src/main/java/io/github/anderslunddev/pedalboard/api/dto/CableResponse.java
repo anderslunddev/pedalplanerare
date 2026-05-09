@@ -14,9 +14,9 @@ public record CableResponse(UUID id, UUID boardId, UUID sourcePedalId, UUID dest
 	public record PathPointDto(double x, double y) {
 	}
 
-	public static CableResponse from(Cable cable) {
+	public static CableResponse from(Cable cable, UUID boardId) {
 		List<PathPointDto> points = cable.pathPoints().stream().map(p -> new PathPointDto(p.x(), p.y())).toList();
-		return new CableResponse(cable.id().value(), cable.boardId().value(), cable.sourcePedalId().value(),
+		return new CableResponse(cable.id().value(), boardId, cable.sourcePedalId().value(),
 				cable.destinationPedalId().value(), points, cable.totalLength().value());
 	}
 }

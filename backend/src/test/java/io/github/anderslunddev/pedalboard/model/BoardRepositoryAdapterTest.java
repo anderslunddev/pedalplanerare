@@ -223,7 +223,6 @@ class BoardRepositoryAdapterTest {
 
 		Pedal expectedPedal = new Pedal(
 				new PedalId(UUID.randomUUID()),
-				boardId.value(),
 				new PedalName("Drive"),
 				new SurfaceArea(10.0, 5.0),
 				new Color("#ffffff"),

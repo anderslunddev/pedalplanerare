@@ -5,6 +5,7 @@ import io.github.anderslunddev.pedalboard.domain.cable.Cable;
 import io.github.anderslunddev.pedalboard.domain.cable.CableId;
 import io.github.anderslunddev.pedalboard.domain.cable.Length;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -30,9 +31,8 @@ class CableModelConverter {
 		}
 		Length totalLength = new Length(lengthValue);
 
-		return new Cable(new CableId(entity.getId()), new BoardId(entity.getBoardId()),
-				new PedalId(entity.getSourcePedalId()), new PedalId(entity.getDestinationPedalId()), points,
-				totalLength);
+		return new Cable(new CableId(entity.getId()), new PedalId(entity.getSourcePedalId()),
+				new PedalId(entity.getDestinationPedalId()), points, totalLength);
 	}
 
 	CableModel toEntity(BoardId boardId, PedalId sourcePedalId, PedalId destinationPedalId,

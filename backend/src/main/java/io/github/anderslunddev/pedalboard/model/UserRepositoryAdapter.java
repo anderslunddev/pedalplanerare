@@ -3,6 +3,7 @@ package io.github.anderslunddev.pedalboard.model;
 import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.UserId;
 import io.github.anderslunddev.pedalboard.domain.user.UserName;
 import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import org.springframework.stereotype.Component;
@@ -32,8 +33,8 @@ public class UserRepositoryAdapter implements UserPersistencePort {
 		return userRepository.findByUsername(userName.value()).map(converter::toDomain);
 	}
 
-	public Optional<User> findById(UUID id) {
-		return userRepository.findById(id).map(converter::toDomain);
+	public Optional<User> findById(UserId id) {
+		return userRepository.findById(id.value()).map(converter::toDomain);
 	}
 
 	public List<User> findAll() {
@@ -48,24 +49,25 @@ public class UserRepositoryAdapter implements UserPersistencePort {
 		return userRepository.existsByEmail(email.value());
 	}
 
-	public User updateRole(UUID userId, Role role) {
-		UserModel model = userRepository.findById(userId)
+	public User updateRole(UserId userId, Role role) {
+		UserModel model = userRepository.findById(userId.value())
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 		model.setRole(role);
 		return converter.toDomain(userRepository.save(model));
 	}
 
-	public User updatePassword(UUID userId, String hashedPassword) {
-		UserModel model = userRepository.findById(userId)
+	public User updatePassword(UserId userId, String hashedPassword) {
+		UserModel model = userRepository.findById(userId.value())
 				.orElseThrow(() -> new IllegalArgumentException("User not found"));
 		model.setPassword(hashedPassword);
 		return converter.toDomain(userRepository.save(model));
 	}
 
-	public void deleteById(UUID userId) {
-		if (!userRepository.existsById(userId)) {
+	public void deleteById(UserId userId) {
+		UUID raw = userId.value();
+		if (!userRepository.existsById(raw)) {
 			throw new IllegalArgumentException("User not found");
 		}
-		userRepository.deleteById(userId);
+		userRepository.deleteById(raw);
 	}
 }

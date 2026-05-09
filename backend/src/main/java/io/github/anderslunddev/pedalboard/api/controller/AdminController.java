@@ -2,6 +2,7 @@ package io.github.anderslunddev.pedalboard.api.controller;
 
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.UserId;
 import io.github.anderslunddev.pedalboard.service.user.UserService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
@@ -38,18 +39,18 @@ public class AdminController {
 
 	@PutMapping("/{id}/role")
 	public AdminUserResponse updateRole(@PathVariable UUID id, @Valid @RequestBody UpdateRoleRequest request) {
-		return toResponse(userService.updateRole(id, request.role()));
+		return toResponse(userService.updateRole(new UserId(id), request.role()));
 	}
 
 	@PutMapping("/{id}/password")
 	public ResponseEntity<Void> resetPassword(@PathVariable UUID id, @Valid @RequestBody ResetPasswordRequest request) {
-		userService.resetPassword(id, request.password());
+		userService.resetPassword(new UserId(id), request.password());
 		return ResponseEntity.noContent().build();
 	}
 
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
-		userService.deleteUser(id);
+		userService.deleteUser(new UserId(id));
 		return ResponseEntity.noContent().build();
 	}
 

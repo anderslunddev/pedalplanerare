@@ -3,6 +3,7 @@ package io.github.anderslunddev.pedalboard.service.user;
 import io.github.anderslunddev.pedalboard.domain.user.Email;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.UserId;
 import io.github.anderslunddev.pedalboard.domain.user.UserName;
 import io.github.anderslunddev.pedalboard.port.UserPersistencePort;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,7 +12,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class UserService {
@@ -55,7 +55,7 @@ public class UserService {
 		}
 	}
 
-	public Optional<User> findById(UUID id) {
+	public Optional<User> findById(UserId id) {
 		return userPersistence.findById(id);
 	}
 
@@ -64,23 +64,23 @@ public class UserService {
 	}
 
 	@Transactional
-	public User updateRole(UUID userId, Role role) {
+	public User updateRole(UserId userId, Role role) {
 		return userPersistence.updateRole(userId, role);
 	}
 
 	@Transactional
-	public User resetPassword(UUID userId, String newPassword) {
+	public User resetPassword(UserId userId, String newPassword) {
 		String hashed = passwordEncoder.encode(newPassword);
 		return userPersistence.updatePassword(userId, hashed);
 	}
 
 	@Transactional
-	public void deleteUser(UUID userId) {
+	public void deleteUser(UserId userId) {
 		userPersistence.deleteById(userId);
 	}
 
 	@Transactional
-	public void changeOwnPassword(UUID userId, String currentPassword, String newPassword) {
+	public void changeOwnPassword(UserId userId, String currentPassword, String newPassword) {
 		User user = userPersistence.findById(userId).orElseThrow(() -> new IllegalArgumentException("User not found"));
 		if (!passwordEncoder.matches(currentPassword, user.password())) {
 			throw new IllegalArgumentException("Current password is incorrect");

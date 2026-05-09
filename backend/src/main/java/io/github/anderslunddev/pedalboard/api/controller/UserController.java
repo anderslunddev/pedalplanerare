@@ -3,6 +3,7 @@ package io.github.anderslunddev.pedalboard.api.controller;
 import io.github.anderslunddev.pedalboard.domain.user.AuthPrincipal;
 import io.github.anderslunddev.pedalboard.domain.user.Role;
 import io.github.anderslunddev.pedalboard.domain.user.User;
+import io.github.anderslunddev.pedalboard.domain.user.UserId;
 import io.github.anderslunddev.pedalboard.security.JwtUtil;
 import io.github.anderslunddev.pedalboard.service.user.UserService;
 import jakarta.validation.Valid;
@@ -39,7 +40,7 @@ public class UserController {
 		if (userId.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
-		return userService.findById(userId.get()).map(UserController::toResponse).map(ResponseEntity::ok)
+		return userService.findById(new UserId(userId.get())).map(UserController::toResponse).map(ResponseEntity::ok)
 				.orElse(ResponseEntity.notFound().build());
 	}
 
@@ -49,7 +50,7 @@ public class UserController {
 		if (userId.isEmpty()) {
 			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
 		}
-		userService.changeOwnPassword(userId.get(), request.currentPassword(), request.newPassword());
+		userService.changeOwnPassword(new UserId(userId.get()), request.currentPassword(), request.newPassword());
 		return ResponseEntity.noContent().build();
 	}
 

@@ -28,20 +28,22 @@ public class CableController {
 		return cableService
 				.createCable(new BoardId(boardId), new PedalId(request.sourcePedalId()),
 						new PedalId(request.destinationPedalId()))
-				.map(CableResponse::from).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.badRequest().build());
+				.map(c -> CableResponse.from(c, boardId)).map(ResponseEntity::ok)
+				.orElseGet(() -> ResponseEntity.badRequest().build());
 	}
 
 	@PostMapping("/boards/{boardId}/generate-sequence")
 	public ResponseEntity<List<CableResponse>> generateSequence(@PathVariable UUID boardId) {
 		var result = cableService.generateSequence(new BoardId(boardId));
-		return result.map(cables -> ResponseEntity.ok(cables.stream().map(CableResponse::from).toList()))
+		return result.map(cables -> ResponseEntity.ok(cables.stream().map(c -> CableResponse.from(c, boardId)).toList()))
 				.orElseGet(() -> ResponseEntity.notFound().build());
 	}
 
 	@GetMapping("/boards/{boardId}/cables")
 	public ResponseEntity<List<CableResponse>> listCables(@PathVariable UUID boardId) {
 		return ResponseEntity
-				.ok(cableService.listCables(new BoardId(boardId)).stream().map(CableResponse::from).toList());
+				.ok(cableService.listCables(new BoardId(boardId)).stream().map(c -> CableResponse.from(c, boardId))
+						.toList());
 	}
 
 	public record CableRequest(@NotNull(message = "Source pedal ID must not be null") UUID sourcePedalId,

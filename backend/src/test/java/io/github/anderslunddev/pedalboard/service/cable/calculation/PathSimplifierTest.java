@@ -56,7 +56,7 @@ class PathSimplifierTest {
 	}
 
 	private static Pedal pedal(double x, double y, double w, double h) {
-		return new Pedal(new PedalId(UUID.randomUUID()), UUID.randomUUID(), new PedalName("p"), new SurfaceArea(w, h),
+		return new Pedal(new PedalId(UUID.randomUUID()), new PedalName("p"), new SurfaceArea(w, h),
 				new Color("#000000"), new Coordinate(x, y), new Placement(1));
 	}
 }

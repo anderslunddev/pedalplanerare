@@ -80,7 +80,7 @@ class BoardTest {
 		UUID boardId = UUID.randomUUID();
 		UUID id1 = UUID.randomUUID();
 		UUID id2 = UUID.randomUUID();
-		List<Pedal> existingPedals = List.of(createPedal(id1, boardId, 1), createPedal(id2, boardId, 3));
+		List<Pedal> existingPedals = List.of(createPedal(id1, 1), createPedal(id2, 3));
 		Board boardWithPedals = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()),
 				new BoardName("Test Board"), new SurfaceArea(100.0, 50.0), existingPedals);
 		PedalToCreate pedalToCreate = new PedalToCreate(new PedalName("Test"), new SurfaceArea(10.0, 10.0),
@@ -96,7 +96,7 @@ class BoardTest {
 		UUID boardId = UUID.randomUUID();
 		UUID id1 = UUID.randomUUID();
 		UUID id2 = UUID.randomUUID();
-		List<Pedal> existingPedals = List.of(createPedal(id1, boardId, 1), createPedal(id2, boardId, 2));
+		List<Pedal> existingPedals = List.of(createPedal(id1, 1), createPedal(id2, 2));
 		Board boardWithPedals = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()),
 				new BoardName("Test Board"), new SurfaceArea(100.0, 50.0), existingPedals);
 		PedalToCreate pedalToCreate = new PedalToCreate(new PedalName("Test"), new SurfaceArea(10.0, 10.0),
@@ -112,7 +112,7 @@ class BoardTest {
 		UUID boardId = UUID.randomUUID();
 		UUID id1 = UUID.randomUUID();
 		UUID id2 = UUID.randomUUID();
-		List<Pedal> existingPedals = List.of(createPedal(id1, boardId, 1), createPedal(id2, boardId, 3));
+		List<Pedal> existingPedals = List.of(createPedal(id1, 1), createPedal(id2, 3));
 		Board boardWithPedals = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()),
 				new BoardName("Test Board"), new SurfaceArea(100.0, 50.0), existingPedals);
 		PedalToCreate pedalToCreate = new PedalToCreate(new PedalName("Test"), new SurfaceArea(10.0, 10.0),
@@ -128,7 +128,7 @@ class BoardTest {
 	void resolvePlacement_shouldReturnMaxPlus1_whenPlacementIsZero() {
 		UUID boardId = UUID.randomUUID();
 		UUID id1 = UUID.randomUUID();
-		List<Pedal> existingPedals = List.of(createPedal(id1, boardId, 2));
+		List<Pedal> existingPedals = List.of(createPedal(id1, 2));
 		Board boardWithPedals = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()),
 				new BoardName("Test Board"), new SurfaceArea(100.0, 50.0), existingPedals);
 		PedalToCreate pedalToCreate = new PedalToCreate(new PedalName("Test"), new SurfaceArea(10.0, 10.0),
@@ -143,7 +143,7 @@ class BoardTest {
 	void resolvePlacement_shouldReturnMaxPlus1_whenPlacementIsNegative() {
 		UUID boardId = UUID.randomUUID();
 		UUID id1 = UUID.randomUUID();
-		List<Pedal> existingPedals = List.of(createPedal(id1, boardId, 1));
+		List<Pedal> existingPedals = List.of(createPedal(id1, 1));
 		Board boardWithPedals = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()),
 				new BoardName("Test Board"), new SurfaceArea(100.0, 50.0), existingPedals);
 		PedalToCreate pedalToCreate = new PedalToCreate(new PedalName("Test"), new SurfaceArea(10.0, 10.0),
@@ -184,7 +184,7 @@ class BoardTest {
 	void resolvePlacement_shouldThrowException_whenPlacement1IsAlreadyTaken() {
 		UUID boardId = UUID.randomUUID();
 		UUID id1 = UUID.randomUUID();
-		List<Pedal> existingPedals = List.of(createPedal(id1, boardId, 1));
+		List<Pedal> existingPedals = List.of(createPedal(id1, 1));
 		Board boardWithPedals = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()),
 				new BoardName("Test Board"), new SurfaceArea(100.0, 50.0), existingPedals);
 		PedalToCreate pedalToCreate = new PedalToCreate(new PedalName("Test"), new SurfaceArea(10.0, 10.0),
@@ -196,14 +196,14 @@ class BoardTest {
 		assertEquals("Placement number 1 is already in use.", exception.getMessage());
 	}
 
-	private static Pedal createPedal(UUID id, UUID boardId, int placement) {
-		return new Pedal(new PedalId(id), boardId, new PedalName("Pedal" + placement), new SurfaceArea(10.0, 10.0),
+	private static Pedal createPedal(UUID id, int placement) {
+		return new Pedal(new PedalId(id), new PedalName("Pedal" + placement), new SurfaceArea(10.0, 10.0),
 				new Color("#000000"), new Coordinate(0.0, 0.0), new Placement(placement));
 	}
 
-	private static Pedal createPedalAt(UUID id, UUID boardId, int placement, double x, double y, double width,
+	private static Pedal createPedalAt(UUID id, int placement, double x, double y, double width,
 			double height) {
-		return new Pedal(new PedalId(id), boardId, new PedalName("Pedal"), new SurfaceArea(width, height),
+		return new Pedal(new PedalId(id), new PedalName("Pedal"), new SurfaceArea(width, height),
 				new Color("#000000"), new Coordinate(x, y), new Placement(placement));
 	}
 
@@ -224,7 +224,7 @@ class BoardTest {
 	void wouldOverlapWithExisting_returnsFalse_whenNewPedalIsLeftOfExisting() {
 		UUID boardId = UUID.randomUUID();
 		// Existing: x=20, y=10, 10x10 → right edge 30, bottom 20
-		Pedal existing = createPedalAt(UUID.randomUUID(), boardId, 1, 20.0, 10.0, 10.0, 10.0);
+		Pedal existing = createPedalAt(UUID.randomUUID(), 1, 20.0, 10.0, 10.0, 10.0);
 		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("Test"),
 				new SurfaceArea(100.0, 50.0), List.of(existing));
 		// New: x=5, y=10, 10x10 → right edge 15, so 15 <= 20 (existing left) → no overlap
@@ -237,7 +237,7 @@ class BoardTest {
 	@Test
 	void wouldOverlapWithExisting_returnsFalse_whenNewPedalIsRightOfExisting() {
 		UUID boardId = UUID.randomUUID();
-		Pedal existing = createPedalAt(UUID.randomUUID(), boardId, 1, 10.0, 10.0, 10.0, 10.0); // 10–20, 10–20
+		Pedal existing = createPedalAt(UUID.randomUUID(), 1, 10.0, 10.0, 10.0, 10.0); // 10–20, 10–20
 		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("Test"),
 				new SurfaceArea(100.0, 50.0), List.of(existing));
 		// New: x=25, right edge 35; existing right 20; 20 <= 25 → no overlap
@@ -250,7 +250,7 @@ class BoardTest {
 	@Test
 	void wouldOverlapWithExisting_returnsFalse_whenNewPedalIsAboveExisting() {
 		UUID boardId = UUID.randomUUID();
-		Pedal existing = createPedalAt(UUID.randomUUID(), boardId, 1, 10.0, 20.0, 10.0, 10.0); // y 20–30
+		Pedal existing = createPedalAt(UUID.randomUUID(), 1, 10.0, 20.0, 10.0, 10.0); // y 20–30
 		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("Test"),
 				new SurfaceArea(100.0, 50.0), List.of(existing));
 		// New: y=5, height 10 → bottom 15; 15 <= 20 → no overlap
@@ -263,7 +263,7 @@ class BoardTest {
 	@Test
 	void wouldOverlapWithExisting_returnsFalse_whenNewPedalIsBelowExisting() {
 		UUID boardId = UUID.randomUUID();
-		Pedal existing = createPedalAt(UUID.randomUUID(), boardId, 1, 10.0, 5.0, 10.0, 10.0); // y 5–15
+		Pedal existing = createPedalAt(UUID.randomUUID(), 1, 10.0, 5.0, 10.0, 10.0); // y 5–15
 		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("Test"),
 				new SurfaceArea(100.0, 50.0), List.of(existing));
 		// New: y=20, bottom 30; existing bottom 15; 15 <= 20 → no overlap
@@ -276,7 +276,7 @@ class BoardTest {
 	@Test
 	void wouldOverlapWithExisting_returnsTrue_whenNewPedalAtSamePosition() {
 		UUID boardId = UUID.randomUUID();
-		Pedal existing = createPedalAt(UUID.randomUUID(), boardId, 1, 10.0, 10.0, 10.0, 10.0);
+		Pedal existing = createPedalAt(UUID.randomUUID(), 1, 10.0, 10.0, 10.0, 10.0);
 		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("Test"),
 				new SurfaceArea(100.0, 50.0), List.of(existing));
 		PedalToCreate toCreate = new PedalToCreate(new PedalName("New"), new SurfaceArea(10.0, 10.0),
@@ -289,7 +289,7 @@ class BoardTest {
 	void wouldOverlapWithExisting_returnsTrue_whenNewPedalPartiallyOverlaps() {
 		UUID boardId = UUID.randomUUID();
 		// Existing: 10–20, 10–20
-		Pedal existing = createPedalAt(UUID.randomUUID(), boardId, 1, 10.0, 10.0, 10.0, 10.0);
+		Pedal existing = createPedalAt(UUID.randomUUID(), 1, 10.0, 10.0, 10.0, 10.0);
 		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("Test"),
 				new SurfaceArea(100.0, 50.0), List.of(existing));
 		// New: 15–25, 15–25 → overlaps in 15–20, 15–20
@@ -302,8 +302,8 @@ class BoardTest {
 	@Test
 	void wouldOverlapWithExisting_returnsTrue_whenOverlappingSecondOfTwoPedals() {
 		UUID boardId = UUID.randomUUID();
-		Pedal p1 = createPedalAt(UUID.randomUUID(), boardId, 1, 0.0, 0.0, 10.0, 10.0);
-		Pedal p2 = createPedalAt(UUID.randomUUID(), boardId, 2, 25.0, 10.0, 10.0, 10.0);
+		Pedal p1 = createPedalAt(UUID.randomUUID(), 1, 0.0, 0.0, 10.0, 10.0);
+		Pedal p2 = createPedalAt(UUID.randomUUID(), 2, 25.0, 10.0, 10.0, 10.0);
 		Board board = new Board(new BoardId(boardId), new UserId(UUID.randomUUID()), new BoardName("Test"),
 				new SurfaceArea(100.0, 50.0), List.of(p1, p2));
 		// New overlaps p2 (25–35, 10–20)
