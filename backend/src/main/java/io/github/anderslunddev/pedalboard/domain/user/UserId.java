@@ -3,9 +3,6 @@ package io.github.anderslunddev.pedalboard.domain.user;
 import java.util.Objects;
 import java.util.UUID;
 
-/**
- * Strongly-typed identifier for users to avoid mixing UUIDs between aggregates.
- */
 public record UserId(UUID value) {
 
 	public UserId {

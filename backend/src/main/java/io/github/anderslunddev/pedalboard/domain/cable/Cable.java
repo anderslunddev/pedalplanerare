@@ -5,7 +5,7 @@ import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
 
 import java.util.List;
 import java.util.Objects;
-
+//TODO it kind of bothers me that a cable has a reference to the board it belongs to. any way to not have that or it costs too much?
 public record Cable(CableId id, BoardId boardId, PedalId sourcePedalId, PedalId destinationPedalId,
 		List<PathPoint> pathPoints, Length totalLength) {
 

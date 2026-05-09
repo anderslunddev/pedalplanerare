@@ -2,16 +2,18 @@ package io.github.anderslunddev.pedalboard.domain.board;
 
 import java.util.Objects;
 
-/**
- * Domain value object representing a board name. Board name must not be null or
- * blank.
- */
+
 public record BoardName(String value) {
+
+	public static final int MAX_LENGTH = 100;
 
 	public BoardName(String value) {
 		this.value = Objects.requireNonNull(value, "Board name must not be null");
 		if (value.isBlank()) {
 			throw new IllegalArgumentException("Board name must not be blank");
+		}
+		if (value.length() > MAX_LENGTH) {
+			throw new IllegalArgumentException("Board name must be at most " + MAX_LENGTH + " characters");
 		}
 	}
 

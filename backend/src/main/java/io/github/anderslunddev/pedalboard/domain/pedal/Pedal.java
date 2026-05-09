@@ -6,7 +6,7 @@ import io.github.anderslunddev.pedalboard.domain.value.SurfaceArea;
 
 import java.util.Objects;
 import java.util.UUID;
-
+//TODO should pedals have a reference to the board? isnt the real domain relationship that a board has pedals? domain needs to be "clean".
 public record Pedal(PedalId id, UUID boardId, PedalName name, SurfaceArea surfaceArea, Color color,
 		Coordinate coordinate, Placement placement) {
 

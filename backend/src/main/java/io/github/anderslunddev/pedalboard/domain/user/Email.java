@@ -6,6 +6,10 @@ import java.util.regex.Pattern;
  * Normalized email address (trimmed, lower-cased) with structural validation.
  * Intentionally stricter than "non-blank" and aligned with common mailbox shapes
  * (local part, single {@code @}, domain with a TLD label).
+ * <p>
+ * Domain VO; we deliberately don't depend on {@code jakarta.validation} here —
+ * validation is enforced at construction so invalid emails can never exist in
+ * the domain model.
  */
 public final class Email implements Comparable<Email> {
 

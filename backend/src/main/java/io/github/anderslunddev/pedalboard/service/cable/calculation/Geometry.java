@@ -6,8 +6,8 @@ import org.springframework.stereotype.Component;
 final class Geometry {
 
 	boolean pointInRect(Point point, Rect rect) {
-		return point.x() >= rect.x() && point.x() <= rect.right() && point.y() >= rect.y()
-				&& point.y() <= rect.bottom();
+		return point.x() >= rect.x() && point.x() <= rect.maxX() && point.y() >= rect.y()
+				&& point.y() <= rect.maxY();
 	}
 
 	boolean segmentsIntersect(Line line1, Line line2) {
@@ -36,11 +36,11 @@ final class Geometry {
 		// If both points are on one side of rectangle, no intersection
 		if (a.x() < rect.x() && b.x() < rect.x())
 			return false;
-		if (a.x() > rect.right() && b.x() > rect.right())
+		if (a.x() > rect.maxX() && b.x() > rect.maxX())
 			return false;
 		if (a.y() < rect.y() && b.y() < rect.y())
 			return false;
-		if (a.y() > rect.bottom() && b.y() > rect.bottom())
+		if (a.y() > rect.maxY() && b.y() > rect.maxY())
 			return false;
 
 		// If either point is inside the rectangle, we consider it intersecting
@@ -50,9 +50,9 @@ final class Geometry {
 
 		// Check intersection with rectangle edges
 		Point topLeft = new Point(rect.x(), rect.y());
-		Point topRight = new Point(rect.right(), rect.y());
-		Point bottomRight = new Point(rect.right(), rect.bottom());
-		Point bottomLeft = new Point(rect.x(), rect.bottom());
+		Point topRight = new Point(rect.maxX(), rect.y());
+		Point bottomRight = new Point(rect.maxX(), rect.maxY());
+		Point bottomLeft = new Point(rect.x(), rect.maxY());
 
 		return this.segmentsIntersect(line, new Line(topLeft, topRight))
 				|| this.segmentsIntersect(line, new Line(topRight, bottomRight))
