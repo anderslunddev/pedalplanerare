@@ -8,7 +8,6 @@ import io.github.anderslunddev.pedalboard.domain.pedal.Pedal;
 import io.github.anderslunddev.pedalboard.domain.pedal.PedalId;
 import io.github.anderslunddev.pedalboard.port.BoardPersistencePort;
 import io.github.anderslunddev.pedalboard.port.CablePersistencePort;
-import io.github.anderslunddev.pedalboard.port.PedalPersistencePort;
 import io.github.anderslunddev.pedalboard.service.cable.calculation.RoutingService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -24,32 +23,13 @@ public class CableService {
 
 	private final CablePersistencePort cablePersistence;
 	private final BoardPersistencePort boardPersistence;
-	private final PedalPersistencePort pedalPersistence;
 	private final RoutingService routingService;
 
 	public CableService(CablePersistencePort cablePersistence, BoardPersistencePort boardPersistence,
-			PedalPersistencePort pedalPersistence, RoutingService routingService) {
+			RoutingService routingService) {
 		this.cablePersistence = cablePersistence;
 		this.boardPersistence = boardPersistence;
-		this.pedalPersistence = pedalPersistence;
 		this.routingService = routingService;
-	}
-
-	@PreAuthorize("@ownershipChecker.ownsBoard(#boardId)")
-	public Optional<Cable> createCable(BoardId boardId, PedalId sourcePedalId, PedalId destinationPedalId) {
-		Optional<Board> optBoard = boardPersistence.findById(boardId);
-		if (optBoard.isEmpty()) {
-			return Optional.empty();
-		}
-		Board domainBoard = optBoard.get();
-
-		Optional<Pedal> optSource = pedalPersistence.findById(sourcePedalId);
-		Optional<Pedal> optDestination = pedalPersistence.findById(destinationPedalId);
-		if (optSource.isEmpty() || optDestination.isEmpty()) {
-			return Optional.empty();
-		}
-		Cable saved = createCable(optSource.get(), optDestination.get(), domainBoard, domainBoard.pedals());
-		return Optional.of(saved);
 	}
 
 	@Transactional
